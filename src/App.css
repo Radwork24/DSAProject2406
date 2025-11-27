@@ -1,0 +1,293 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;200;300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Josefin Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* Header Styles */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.logo-text {
+  letter-spacing: -0.5px;
+}
+
+.logo-cursor {
+  color: #00ff88;
+}
+
+@keyframes blink {
+
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b0b0b0;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+  padding: 8px 0;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: #ffffff;
+}
+
+.nav-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sponsor-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ff4d6d, #ff6b9d);
+  border: none;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sponsor-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 77, 109, 0.3);
+}
+
+.sponsor-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.app {
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-top: 80px;
+}
+
+.landing-container {
+  width: 100%;
+  max-width: 1400px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 100px;
+}
+
+.text-content {
+  flex: 1;
+  max-width: 500px;
+}
+
+.text-content h1 {
+  font-size: 80px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 24px;
+  color: #ffffff;
+  letter-spacing: -3px;
+}
+
+.text-content p {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #b0b0b0;
+  margin-bottom: 30px;
+}
+
+.cta-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.install-command {
+  background-color: #2a2a2a;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #ffffff;
+  border: 1px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.copy-icon {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.copy-icon:hover {
+  opacity: 1;
+}
+
+.learn-more-btn {
+  background: transparent;
+  border: 1px solid #4a4a4a;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.learn-more-btn:hover {
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.animation-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 600px;
+}
+
+#animation-canvas {
+  width: 100%;
+  max-width: 600px;
+  height: 600px;
+}
+
+@media (max-width: 1024px) {
+  .landing-container {
+    flex-direction: column;
+    gap: 60px;
+    text-align: center;
+  }
+
+  .text-content {
+    max-width: 100%;
+  }
+
+  .text-content h1 {
+    font-size: 56px;
+  }
+
+  .cta-section {
+    justify-content: center;
+  }
+
+  .nav {
+    gap: 20px;
+  }
+
+  .nav-link {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .text-content h1 {
+    font-size: 42px;
+  }
+
+  .cta-section {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .install-command,
+  .learn-more-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-content {
+    padding: 15px 20px;
+  }
+
+  .nav {
+    gap: 15px;
+  }
+
+  .nav-link span {
+    display: none;
+  }
+
+  .sponsor-btn {
+    padding: 8px 12px;
+    font-size: 0;
+  }
+
+  .sponsor-btn svg {
+    margin: 0;
+  }
+}
