@@ -129,13 +129,13 @@ function ArrayConcept() {
                             <p>Retrieve an element at a specific index.</p>
                             <div className="code-block">
                                 <code>
-                                    {`// JavaScript
-let arr = [10, 20, 30, 40, 50];
-let element = arr[2];  // Returns 30
+                                    {`// Java
+int[] arr = {10, 20, 30, 40, 50};
+int element = arr[2];  // Returns 30
 
-// Python
-arr = [10, 20, 30, 40, 50]
-element = arr[2]  # Returns 30`}
+// C++
+int arr[] = {10, 20, 30, 40, 50};
+int element = arr[2];  // Returns 30`}
                                 </code>
                             </div>
                             <p className="operation-note"><strong>Time Complexity:</strong> O(1) - Constant time</p>
@@ -146,14 +146,17 @@ element = arr[2]  # Returns 30`}
                             <p>Add a new element to the array.</p>
                             <div className="code-block">
                                 <code>
-                                    {`// JavaScript - Insert at end
-arr.push(60);  // [10, 20, 30, 40, 50, 60]
+                                    {`// Java - Using ArrayList for dynamic insertion
+ArrayList<Integer> arr = new ArrayList<>(Arrays.asList(10, 20, 30, 40, 50));
+arr.add(60);           // Insert at end: [10, 20, 30, 40, 50, 60]
+arr.add(0, 5);         // Insert at beginning: [5, 10, 20, 30, 40, 50, 60]
+arr.add(2, 25);        // Insert at index 2: [5, 10, 25, 20, 30, 40, 50, 60]
 
-// JavaScript - Insert at beginning
-arr.unshift(5);  // [5, 10, 20, 30, 40, 50]
-
-// JavaScript - Insert at specific position
-arr.splice(2, 0, 25);  // [10, 20, 25, 30, 40, 50]`}
+// C++ - Using vector for dynamic insertion
+vector<int> arr = {10, 20, 30, 40, 50};
+arr.push_back(60);                    // Insert at end
+arr.insert(arr.begin(), 5);           // Insert at beginning
+arr.insert(arr.begin() + 2, 25);      // Insert at index 2`}
                                 </code>
                             </div>
                             <p className="operation-note"><strong>Time Complexity:</strong> O(n) - Linear time (requires shifting elements)</p>
@@ -164,14 +167,17 @@ arr.splice(2, 0, 25);  // [10, 20, 25, 30, 40, 50]`}
                             <p>Remove an element from the array.</p>
                             <div className="code-block">
                                 <code>
-                                    {`// JavaScript - Delete from end
-arr.pop();  // Removes last element
+                                    {`// Java - Using ArrayList
+ArrayList<Integer> arr = new ArrayList<>(Arrays.asList(10, 20, 30, 40, 50));
+arr.remove(arr.size() - 1);  // Delete from end
+arr.remove(0);                // Delete from beginning
+arr.remove(2);                // Delete at index 2
 
-// JavaScript - Delete from beginning
-arr.shift();  // Removes first element
-
-// JavaScript - Delete at specific position
-arr.splice(2, 1);  // Removes element at index 2`}
+// C++ - Using vector
+vector<int> arr = {10, 20, 30, 40, 50};
+arr.pop_back();                      // Delete from end
+arr.erase(arr.begin());              // Delete from beginning
+arr.erase(arr.begin() + 2);          // Delete at index 2`}
                                 </code>
                             </div>
                             <p className="operation-note"><strong>Time Complexity:</strong> O(n) - Linear time (requires shifting elements)</p>
@@ -182,18 +188,24 @@ arr.splice(2, 1);  // Removes element at index 2`}
                             <p>Find an element in the array.</p>
                             <div className="code-block">
                                 <code>
-                                    {`// JavaScript - Linear Search
-let index = arr.indexOf(30);  // Returns 2
+                                    {`// Java - Linear Search
+public static int linearSearch(int[] arr, int target) {
+    for (int i = 0; i < arr.length; i++) {
+        if (arr[i] == target) {
+            return i;
+        }
+    }
+    return -1;
+}
 
-// JavaScript - Check if element exists
-let exists = arr.includes(30);  // Returns true
-
-// Custom search function
-function linearSearch(arr, target) {
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] === target) return i;
-  }
-  return -1;
+// C++ - Linear Search
+int linearSearch(int arr[], int n, int target) {
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == target) {
+            return i;
+        }
+    }
+    return -1;
 }`}
                                 </code>
                             </div>
@@ -205,11 +217,13 @@ function linearSearch(arr, target) {
                             <p>Modify an element at a specific index.</p>
                             <div className="code-block">
                                 <code>
-                                    {`// JavaScript
+                                    {`// Java
+int[] arr = {10, 20, 30, 40, 50};
 arr[2] = 35;  // Updates element at index 2
 
-// Python
-arr[2] = 35  # Updates element at index 2`}
+// C++
+int arr[] = {10, 20, 30, 40, 50};
+arr[2] = 35;  // Updates element at index 2`}
                                 </code>
                             </div>
                             <p className="operation-note"><strong>Time Complexity:</strong> O(1) - Constant time</p>
@@ -313,24 +327,39 @@ arr[2] = 35  # Updates element at index 2`}
                             </p>
                             <div className="code-block">
                                 <code>
-                                    {`function twoSum(nums, target) {
-  const map = new Map();
-  
-  for (let i = 0; i < nums.length; i++) {
-    const complement = target - nums[i];
+                                    {`// Java Solution
+public int[] twoSum(int[] nums, int target) {
+    HashMap<Integer, Integer> map = new HashMap<>();
     
-    if (map.has(complement)) {
-      return [map.get(complement), i];
+    for (int i = 0; i < nums.length; i++) {
+        int complement = target - nums[i];
+        
+        if (map.containsKey(complement)) {
+            return new int[] {map.get(complement), i};
+        }
+        
+        map.put(nums[i], i);
     }
     
-    map.set(nums[i], i);
-  }
-  
-  return [];
+    return new int[] {};
 }
 
-// Example usage
-console.log(twoSum([2, 7, 11, 15], 9));  // [0, 1]`}
+// C++ Solution
+vector<int> twoSum(vector<int>& nums, int target) {
+    unordered_map<int, int> map;
+    
+    for (int i = 0; i < nums.size(); i++) {
+        int complement = target - nums[i];
+        
+        if (map.find(complement) != map.end()) {
+            return {map[complement], i};
+        }
+        
+        map[nums[i]] = i;
+    }
+    
+    return {};
+}`}
                                 </code>
                             </div>
                             <p className="example-complexity"><strong>Time:</strong> O(n) | <strong>Space:</strong> O(n)</p>
@@ -343,20 +372,31 @@ console.log(twoSum([2, 7, 11, 15], 9));  // [0, 1]`}
                             </p>
                             <div className="code-block">
                                 <code>
-                                    {`function maxSubArray(nums) {
-  let maxSum = nums[0];
-  let currentSum = nums[0];
-  
-  for (let i = 1; i < nums.length; i++) {
-    currentSum = Math.max(nums[i], currentSum + nums[i]);
-    maxSum = Math.max(maxSum, currentSum);
-  }
-  
-  return maxSum;
+                                    {`// Java Solution
+public int maxSubArray(int[] nums) {
+    int maxSum = nums[0];
+    int currentSum = nums[0];
+    
+    for (int i = 1; i < nums.length; i++) {
+        currentSum = Math.max(nums[i], currentSum + nums[i]);
+        maxSum = Math.max(maxSum, currentSum);
+    }
+    
+    return maxSum;
 }
 
-// Example usage
-console.log(maxSubArray([-2,1,-3,4,-1,2,1,-5,4]));  // 6`}
+// C++ Solution
+int maxSubArray(vector<int>& nums) {
+    int maxSum = nums[0];
+    int currentSum = nums[0];
+    
+    for (int i = 1; i < nums.size(); i++) {
+        currentSum = max(nums[i], currentSum + nums[i]);
+        maxSum = max(maxSum, currentSum);
+    }
+    
+    return maxSum;
+}`}
                                 </code>
                             </div>
                             <p className="example-complexity"><strong>Time:</strong> O(n) | <strong>Space:</strong> O(1)</p>
@@ -369,30 +409,39 @@ console.log(maxSubArray([-2,1,-3,4,-1,2,1,-5,4]));  // 6`}
                             </p>
                             <div className="code-block">
                                 <code>
-                                    {`function rotate(nums, k) {
-  k = k % nums.length;
-  
-  // Helper function to reverse array portion
-  const reverse = (start, end) => {
-    while (start < end) {
-      [nums[start], nums[end]] = [nums[end], nums[start]];
-      start++;
-      end--;
-    }
-  };
-  
-  // Reverse entire array
-  reverse(0, nums.length - 1);
-  // Reverse first k elements
-  reverse(0, k - 1);
-  // Reverse remaining elements
-  reverse(k, nums.length - 1);
+                                    {`// Java Solution
+public void rotate(int[] nums, int k) {
+    k = k % nums.length;
+    
+    // Reverse entire array
+    reverse(nums, 0, nums.length - 1);
+    // Reverse first k elements
+    reverse(nums, 0, k - 1);
+    // Reverse remaining elements
+    reverse(nums, k, nums.length - 1);
 }
 
-// Example usage
-let arr = [1,2,3,4,5,6,7];
-rotate(arr, 3);
-console.log(arr);  // [5,6,7,1,2,3,4]`}
+private void reverse(int[] nums, int start, int end) {
+    while (start < end) {
+        int temp = nums[start];
+        nums[start] = nums[end];
+        nums[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+// C++ Solution
+void rotate(vector<int>& nums, int k) {
+    k = k % nums.size();
+    
+    // Reverse entire array
+    reverse(nums.begin(), nums.end());
+    // Reverse first k elements
+    reverse(nums.begin(), nums.begin() + k);
+    // Reverse remaining elements
+    reverse(nums.begin() + k, nums.end());
+}`}
                                 </code>
                             </div>
                             <p className="example-complexity"><strong>Time:</strong> O(n) | <strong>Space:</strong> O(1)</p>

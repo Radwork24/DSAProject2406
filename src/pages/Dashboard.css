@@ -607,9 +607,21 @@
   font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   resize: none;
   outline: none;
-  height: 100px;
+  height: 24px;
   overflow-y: auto;
   line-height: 1.5;
+}
+
+/* Hide scrollbar for textarea */
+.dashboard-input::-webkit-scrollbar {
+  display: none;
+}
+
+.dashboard-input {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .dashboard-input::placeholder {
