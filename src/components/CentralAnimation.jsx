@@ -3,15 +3,15 @@ function CentralAnimation() {
     <div className="hero-visual">
       <div className="gradient-ring" />
       <div className="data-card primary">
-        <p className="card-label">Safety reviews</p>
-        <h4>4,200 scenarios</h4>
-        <p>stress-tested by red teams worldwide</p>
+        <p className="card-label">Optimized and executed on advanced DSA problem sets certified by </p>
+        <h4>12,000+</h4>
+        <p>Structured test evluations.</p>
       </div>
 
       <div className="data-card secondary">
-        <p className="card-label">Claude Opus 4.5</p>
+        <p className="card-label">Algo Zen V5.6</p>
         <h5>Now boarding</h5>
-        <p>context windows up to 200K tokens</p>
+        <p>Deep Visualisation-powered algorithm debugging.</p>
       </div>
 
       <div className="orbit-dots">

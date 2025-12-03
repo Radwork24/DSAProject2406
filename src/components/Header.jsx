@@ -1,5 +1,5 @@
 function Header() {
-  const navItems = ['Research', 'Features', 'Pricing', 'Learn', 'News'];
+  const navItems = ['Research', 'Features', 'Pricing', 'Why AlgoZen', 'Team'];
 
   return (
     <header className="site-header">

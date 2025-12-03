@@ -129,11 +129,22 @@ button {
   margin-bottom: 1.5rem;
 }
 
+.feature-section {
+  margin-bottom: 2rem;
+}
+
+.feature-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgba(26, 26, 26, 0.9);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
 .feature-text {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 2rem;
 }
 
 .feature-text span {
@@ -264,7 +275,7 @@ button {
 
   50% {
     transform: translateY(-6px);
-  }
+}
 
   100% {
     transform: translateY(0);
@@ -303,7 +314,7 @@ button {
   color: rgba(26, 26, 26, 0.7);
   line-height: 1.6;
   margin-bottom: 1.5rem;
-}
+  }
 
 .inline-list {
   display: flex;
@@ -316,7 +327,7 @@ button {
   padding: 4px 10px;
   border-radius: 999px;
   background: rgba(26, 26, 26, 0.05);
-}
+  }
 
 .text-link {
   border: none;
@@ -325,19 +336,19 @@ button {
   font-weight: 600;
   cursor: pointer;
   padding: 0;
-}
+  }
 
 .pillar-grid {
   margin-top: 80px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 24px;
-}
+  }
 
 .pillar-grid article {
   border-top: 1px solid rgba(26, 26, 26, 0.1);
   padding-top: 24px;
-}
+  }
 
 .pillar-label {
   text-transform: uppercase;
@@ -349,7 +360,7 @@ button {
 
 .pillar-grid h3 {
   margin-bottom: 0.75rem;
-}
+  }
 
 .pillar-grid p {
   color: rgba(26, 26, 26, 0.7);
