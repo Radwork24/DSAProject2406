@@ -1,0 +1,12 @@
+/* Heap Concept Styling (based on other concept styles) */
+.concept-page { min-height:100vh; background-color:#2a2d2a; color:#e0e0e0; font-family:'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif }
+.concept-header { background:linear-gradient(135deg,#2d302d 0%,#3a3d42 100%); border-bottom:2px solid #ff7e5f; padding:40px 24px }
+.concept-content { max-width:1200px; margin:0 auto; padding:40px 24px }
+.heap-visualization { display:flex; flex-direction:column; align-items:center; gap:8px }
+.heap-row { display:flex; gap:12px; justify-content:center }
+.heap-node { background:linear-gradient(135deg,#ff7e5f 0%,#feb47b 100%); color:#fff; padding:10px 16px; border-radius:8px; min-width:60px; font-weight:700; text-align:center }
+.visual-caption { color:#8a8a8a; font-style:italic; margin-top:12px }
+.operation-card { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin-bottom:24px }
+.code-block { background-color:#1e1e1e; border:1px solid #3a3d42; border-radius:8px; padding:20px; margin:16px 0 }
+.example-card { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin-bottom:32px }
+@media (max-width:768px) { .heap-node{min-width:50px} }

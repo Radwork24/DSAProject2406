@@ -1,0 +1,94 @@
+/* Linked List Concept Styling (based on Array/Strings pages) */
+.concept-page {
+  min-height: 100vh;
+  background-color: #2a2d2a;
+  color: #e0e0e0;
+  font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.concept-header {
+  background: linear-gradient(135deg, #2d302d 0%, #3a3d42 100%);
+  border-bottom: 2px solid #ff7e5f;
+  padding: 40px 24px;
+}
+
+.concept-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #8a8a8a;
+}
+
+.breadcrumb a {
+  color: #ff7e5f;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb a:hover { color: #feb47b; }
+.breadcrumb-separator { color: #5a5a5a; }
+.breadcrumb-current { color: #e0e0e0; font-weight: 600; }
+
+.concept-title { font-size: 48px; font-weight: 700; color: #e0e0e0; margin-bottom: 12px; }
+.concept-subtitle { font-size: 18px; color: #b0b0b0; line-height: 1.6; max-width: 800px; }
+
+.concept-nav { background-color: #2d302d; border-bottom: 1px solid #3a3d42; display: flex; gap: 4px; padding: 0 24px; max-width: 1200px; margin: 0 auto; overflow-x: auto; }
+.concept-nav-btn { background: transparent; border: none; color: #8a8a8a; padding: 16px 24px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; border-bottom: 3px solid transparent; white-space: nowrap; font-family: inherit; }
+.concept-nav-btn:hover { color: #e0e0e0; background-color: rgba(255,126,95,0.05); }
+.concept-nav-btn.active { color: #ff7e5f; border-bottom-color: #ff7e5f; }
+
+.concept-content { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+.concept-section { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(10px) } to { opacity:1; transform: translateY(0) } }
+
+.concept-section h2 { font-size: 32px; font-weight:700; color: #e0e0e0; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #3a3d42; }
+.concept-section h3 { font-size:24px; color:#e0e0e0; margin-top:32px; margin-bottom:16px; }
+.concept-card { background-color:#2d302d; border:1px solid #3a3d42; border-left:4px solid #ff7e5f; border-radius:8px; padding:24px; margin-bottom:24px; }
+
+/* List Visualization */
+.visual-example { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:32px; margin:24px 0; text-align:center; }
+.list-visualization { display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; }
+.node-cell { display:flex; flex-direction:column; align-items:center; }
+.node-value { background: linear-gradient(135deg,#ff7e5f 0%,#feb47b 100%); color:#fff; font-weight:700; font-size:18px; padding:14px 18px; border-radius:8px; box-shadow:0 4px 12px rgba(255,126,95,0.25); min-width:70px; text-align:center; }
+.node-pointer { color:#ff7e5f; font-weight:800; margin-top:8px; }
+.visual-caption { color:#8a8a8a; font-size:14px; font-style:italic; margin-top:16px; }
+
+/* Operation Cards */
+.operation-card { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin-bottom:24px; }
+.operation-card h3 { color:#ff7e5f; margin-top:0 }
+.operation-note { background-color:#3a3d42; padding:12px 16px; border-radius:6px; margin-top:16px; color:#b0b0b0 }
+
+.code-block { background-color:#1e1e1e; border:1px solid #3a3d42; border-radius:8px; padding:20px; margin:16px 0; overflow-x:auto }
+.code-block code { font-family:'Courier New',monospace; font-size:14px; color:#e0e0e0; white-space:pre; display:block }
+
+/* Complexity Table (same styling as other pages) */
+.complexity-table-wrapper { overflow-x:auto; margin:24px 0; border-radius:8px; border:1px solid #3a3d42 }
+.complexity-table { width:100%; border-collapse:collapse; background-color:#2d302d }
+.complexity-table thead { background:linear-gradient(135deg,#3a3d42 0%,#454950 100%) }
+.complexity-table th { padding:16px; text-align:left; font-weight:600; color:#ff7e5f; border-bottom:2px solid #ff7e5f }
+.complexity-table td { padding:14px 16px; border-bottom:1px solid #3a3d42; color:#e0e0e0 }
+.complexity-good { color:#5fff7f; font-weight:700; font-family:'Courier New',monospace }
+.complexity-bad { color:#ff5f5f; font-weight:700; font-family:'Courier New',monospace }
+.complexity-medium { color:#ffbf5f; font-weight:700; font-family:'Courier New',monospace }
+
+.example-card { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin-bottom:32px }
+.example-card h3 { color:#ff7e5f; margin-top:0 }
+.example-description { color:#b0b0b0; font-size:15px; margin-bottom:16px; line-height:1.6 }
+.example-complexity { background-color:#3a3d42; padding:12px 16px; border-radius:6px; margin-top:16px; color:#b0b0b0; display:inline-block }
+
+@media (max-width:768px) {
+  .concept-title { font-size:36px }
+  .concept-subtitle { font-size:16px }
+  .concept-nav { padding:0 16px }
+  .concept-nav-btn { padding:14px 16px; font-size:14px }
+  .concept-content { padding:24px 16px }
+  .list-visualization { gap:12px }
+  .node-value { min-width:60px; padding:12px 14px; font-size:16px }
+}

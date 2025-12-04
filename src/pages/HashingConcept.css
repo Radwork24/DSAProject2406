@@ -1,0 +1,19 @@
+/* Hashing Concept Styling (based on other concept styles) */
+.concept-page { min-height:100vh; background-color:#2a2d2a; color:#e0e0e0; font-family:'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif }
+.concept-header { background:linear-gradient(135deg,#2d302d 0%,#3a3d42 100%); border-bottom:2px solid #ff7e5f; padding:40px 24px }
+.concept-header-content { max-width:1200px; margin:0 auto }
+.concept-title { font-size:48px; font-weight:700; color:#e0e0e0 }
+.concept-subtitle { font-size:18px; color:#b0b0b0 }
+.concept-nav { background-color:#2d302d; border-bottom:1px solid #3a3d42; display:flex; gap:4px; padding:0 24px; max-width:1200px; margin:0 auto }
+.concept-nav-btn { background:transparent; border:none; color:#8a8a8a; padding:16px 24px; font-size:15px; font-weight:600; cursor:pointer }
+.concept-nav-btn.active { color:#ff7e5f }
+.concept-content { max-width:1200px; margin:0 auto; padding:40px 24px }
+.visual-example { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin:24px 0; text-align:center }
+.hash-buckets { display:flex; gap:12px; justify-content:center; flex-wrap:wrap }
+.bucket { background:linear-gradient(135deg,#3a3d42 0%,#454950 100%); color:#e0e0e0; padding:12px 18px; border-radius:8px; min-width:120px; text-align:left; font-family:'Courier New',monospace }
+.visual-caption { color:#8a8a8a; font-style:italic; margin-top:12px }
+.operation-card { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin-bottom:24px }
+.code-block { background-color:#1e1e1e; border:1px solid #3a3d42; border-radius:8px; padding:20px; margin:16px 0; overflow-x:auto }
+.example-card { background-color:#2d302d; border:1px solid #3a3d42; border-radius:8px; padding:24px; margin-bottom:32px }
+.example-complexity { background-color:#3a3d42; padding:12px 16px; border-radius:6px; color:#b0b0b0 }
+@media (max-width:768px) { .bucket{min-width:90px} }
