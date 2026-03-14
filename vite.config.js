@@ -1,8 +1,10 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { spawn } from 'child_process'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import Razorpay from 'razorpay'
+import crypto from 'crypto'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -56,7 +58,7 @@ function runPythonScraper(question, mode = 'context') {
 }
 
 // Custom plugin to handle web search API using Python scraper
-function webSearchPlugin() {
+function webSearchPlugin(env) {
   return {
     name: 'web-search-api',
     configureServer(server) {
@@ -133,11 +135,62 @@ function webSearchPlugin() {
           }
         })
       })
+
+      server.middlewares.use('/api/createOrder', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405; res.end('Method not allowed'); return;
+        }
+        let body = '';
+        req.on('data', chunk => { body += chunk });
+        req.on('end', async () => {
+          try {
+            const { amount, currency = 'INR', receipt } = JSON.parse(body);
+            const razorpay = new Razorpay({
+              key_id: env.VITE_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+              key_secret: env.VITE_RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET,
+            });
+            const options = { amount: amount * 100, currency, receipt };
+            const order = await razorpay.orders.create(options);
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(order));
+          } catch (error) {
+            res.statusCode = 500; res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      });
+
+      server.middlewares.use('/api/verifyPayment', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405; res.end('Method not allowed'); return;
+        }
+        let body = '';
+        req.on('data', chunk => { body += chunk });
+        req.on('end', async () => {
+          try {
+            const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = JSON.parse(body);
+            const secret = env.VITE_RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+            const hmac = crypto.createHmac('sha256', secret);
+            hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+            const generated_signature = hmac.digest('hex');
+            res.setHeader('Content-Type', 'application/json');
+            if (razorpay_signature === generated_signature) {
+              res.end(JSON.stringify({ success: true, message: "Payment verified successfully" }));
+            } else {
+              res.statusCode = 400; res.end(JSON.stringify({ success: false, message: "Invalid payment signature" }));
+            }
+          } catch (error) {
+            res.statusCode = 500; res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      });
     }
   }
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), webSearchPlugin()],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    plugins: [react(), webSearchPlugin(env)],
+  };
 })
