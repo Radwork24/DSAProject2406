@@ -1,0 +1,311 @@
+/* ── WhyAlgoZen Page Styles ── */
+
+/* Hero */
+.waz-hero {
+    position: relative;
+    padding-top: 80px;
+    padding-bottom: 60px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.waz-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 126, 95, 0.18), transparent 65%);
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: blur(40px);
+    pointer-events: none;
+    animation: ringPulse 6s ease-in-out infinite;
+}
+
+.waz-hero-h1 {
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+}
+
+.waz-accent {
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.waz-hero-lede {
+    max-width: 680px;
+    margin: 0 auto 2rem;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(26, 26, 26, 0.72);
+}
+
+.waz-hero .cta-row {
+    justify-content: center;
+}
+
+/* Section headings */
+.waz-section-title {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    color: #1a1a1a;
+}
+
+.waz-section-sub {
+    font-size: 1rem;
+    color: rgba(26, 26, 26, 0.65);
+    line-height: 1.7;
+    max-width: 600px;
+    margin-bottom: 2.5rem;
+}
+
+/* ── Comparison Table ── */
+.waz-table-section {
+    margin-top: 80px;
+    background: #f5f0e8;
+    border-radius: 24px;
+    padding: 48px 48px 36px;
+    border: 1px solid rgba(26, 26, 26, 0.08);
+    box-shadow: 0 4px 6px rgba(26, 26, 26, 0.03), 0 20px 40px rgba(26, 26, 26, 0.06);
+}
+
+.waz-table-wrap {
+    overflow-x: auto;
+    border-radius: 16px;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.waz-table-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.waz-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.waz-table thead th {
+    padding: 14px 18px;
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: rgba(26, 26, 26, 0.55);
+    border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+}
+
+.waz-th-feature {
+    text-align: left !important;
+    min-width: 220px;
+}
+
+.waz-th-az {
+    color: #d95f3b !important;
+}
+
+.waz-table tbody tr {
+    border-bottom: 1px solid rgba(26, 26, 26, 0.06);
+    transition: background 0.15s ease;
+}
+
+.waz-table tbody tr:hover {
+    background: rgba(26, 26, 26, 0.025);
+}
+
+.waz-row-exclusive {
+    background: rgba(255, 126, 95, 0.04);
+}
+
+.waz-table tbody td {
+    padding: 13px 18px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.waz-td-feature {
+    text-align: left !important;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(26, 26, 26, 0.8);
+}
+
+.waz-td-az svg {
+    margin: 0 auto;
+    display: block;
+}
+
+.waz-table tbody td svg {
+    margin: 0 auto;
+    display: block;
+}
+
+/* ── Pipeline ── */
+.waz-pipeline-section {
+    margin-top: 80px;
+}
+
+.waz-pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 28px;
+    position: relative;
+}
+
+.waz-pipeline-step {
+    position: relative;
+    background: #fffdf9;
+    border-radius: 24px;
+    padding: 36px 28px 32px;
+    border: 1px solid rgba(26, 26, 26, 0.09);
+    box-shadow: 0 4px 6px rgba(26, 26, 26, 0.04), 0 20px 40px rgba(26, 26, 26, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.waz-pipeline-step:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 12px rgba(26, 26, 26, 0.06), 0 32px 64px rgba(26, 26, 26, 0.1);
+}
+
+.waz-pipeline-step::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    border-radius: 24px 24px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.waz-pipeline-step:hover::before {
+    opacity: 1;
+}
+
+.waz-pipeline-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
+.waz-pipeline-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(26, 26, 26, 0.4);
+    background: rgba(26, 26, 26, 0.06);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+}
+
+.waz-pipeline-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+}
+
+.waz-pipeline-desc {
+    font-size: 0.9rem;
+    color: rgba(26, 26, 26, 0.65);
+    line-height: 1.65;
+}
+
+/* ── Advantages ── */
+.waz-advantages-section {
+    margin-top: 80px;
+}
+
+.waz-advantages {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+/* ── CTA Banner ── */
+.waz-cta-banner {
+    position: relative;
+    margin-top: 80px;
+    background: #1a1a1a;
+    border-radius: 28px;
+    padding: 72px 48px;
+    text-align: center;
+    overflow: hidden;
+    color: #f7f1ea;
+}
+
+.waz-cta-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 126, 95, 0.3), transparent 65%);
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: blur(50px);
+    pointer-events: none;
+    animation: ringPulse 5s ease-in-out infinite;
+}
+
+.waz-cta-banner .eyebrow {
+    color: rgba(247, 241, 234, 0.5);
+}
+
+.waz-cta-title {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    color: #f7f1ea;
+}
+
+.waz-cta-sub {
+    font-size: 1.05rem;
+    color: rgba(247, 241, 234, 0.65);
+    max-width: 520px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+}
+
+.waz-cta-btn {
+    background: linear-gradient(90deg, #ff7e5f, #feb47b) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+    font-size: 1rem;
+    padding: 0.9rem 2.4rem;
+}
+
+.waz-cta-btn:hover {
+    box-shadow: 0 8px 28px rgba(255, 126, 95, 0.45) !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    .waz-table-section {
+        padding: 28px 18px 24px;
+    }
+
+    .waz-cta-banner {
+        padding: 48px 24px;
+    }
+}

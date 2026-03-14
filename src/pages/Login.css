@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #2a2d2a;
+    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #e0e0e0;
+    padding: 40px 20px;
+}
+
+.login-content {
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+}
+
+.login-heading {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+}
+
+.login-subtext {
+    font-size: 15px;
+    color: #a0a8b8;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e0e4ec;
+    margin-bottom: 10px;
+}
+
+.form-label .required {
+    color: #ff6b6b;
+    margin-left: 2px;
+}
+
+.login-input {
+    width: 100%;
+    padding: 14px 16px;
+    background-color: #3a3d42;
+    border: 1px solid #454950;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.login-input:hover {
+    border-color: #50555c;
+    background-color: #454950;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: #ff7e5f;
+    box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.2);
+}
+
+.login-input::placeholder {
+    color: #8a8a8a;
+}
+
+.login-button {
+    width: 100%;
+    padding: 16px 32px;
+    background-color: #3a3d42;
+    border: 1px solid #454950;
+    border-radius: 8px;
+    color: #8a8a8a;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: not-allowed;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.login-button.active {
+    background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+    color: #ffffff;
+    cursor: pointer;
+    border-color: transparent;
+}
+
+.login-button.active:hover {
+    background: linear-gradient(135deg, #ff9068 0%, #fec878 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.login-button.active:active {
+    transform: translateY(0);
+}
+
+.login-footer {
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #454950;
+}
+
+.signup-prompt {
+    font-size: 14px;
+    color: #a0a8b8;
+}
+
+.signup-link {
+    background: none;
+    border: none;
+    color: #6ea8fe;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    padding: 0;
+}
+
+.signup-link:hover {
+    color: #9ec5fe;
+    text-decoration: underline;
+}
+
+.signup-link:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Error Message */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background-color: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: 8px;
+    color: #ff6b6b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.error-message svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+/* Loading Spinner */
+.button-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .login-heading {
+        font-size: 26px;
+    }
+
+    .login-input {
+        padding: 12px 14px;
+    }
+}

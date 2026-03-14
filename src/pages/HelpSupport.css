@@ -1,0 +1,276 @@
+/* ── Help & Support Page ── */
+.hs-page {
+    min-height: 100vh;
+    padding: 60px 5vw 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hs-bg-glow {
+    position: fixed;
+    top: -12%;
+    right: -10%;
+    width: 560px;
+    height: 560px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 126, 95, 0.12), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: hsPulse 8s ease-in-out infinite;
+}
+
+@keyframes hsPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+/* ── Hero ── */
+.hs-hero {
+    text-align: center;
+    padding: 60px 0 56px;
+    position: relative;
+    z-index: 1;
+}
+
+.hs-hero-h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+}
+
+.hs-hero-lede {
+    max-width: 580px;
+    margin: 0 auto;
+}
+
+/* ── Contact Cards ── */
+.hs-contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 72px;
+    position: relative;
+    z-index: 1;
+}
+
+.hs-contact-card {
+    background: #fffdf9;
+    border-radius: 24px;
+    padding: 36px 32px;
+    border: 1px solid rgba(26, 26, 26, 0.08);
+    box-shadow: 0 4px 6px rgba(26, 26, 26, 0.04), 0 20px 40px rgba(26, 26, 26, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.hs-contact-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    border-radius: 24px 24px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.hs-contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(26, 26, 26, 0.06), 0 28px 56px rgba(26, 26, 26, 0.1);
+}
+
+.hs-contact-card:hover::before {
+    opacity: 1;
+}
+
+.hs-contact-icon {
+    margin-bottom: 16px;
+}
+
+.hs-contact-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(26, 26, 26, 0.45);
+    margin-bottom: 8px;
+}
+
+.hs-contact-value {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-decoration: none;
+    margin-bottom: 6px;
+    word-break: break-all;
+    transition: color 0.2s;
+}
+
+a.hs-contact-value:hover {
+    color: #d95f3b;
+}
+
+.hs-contact-note {
+    font-size: 0.85rem;
+    color: rgba(26, 26, 26, 0.55);
+}
+
+/* ── FAQ ── */
+.hs-faq-section {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 72px;
+}
+
+.hs-faq-title {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    color: #1a1a1a;
+}
+
+.hs-faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid rgba(26, 26, 26, 0.08);
+}
+
+.hs-faq-item {
+    border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+}
+
+.hs-faq-q {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    gap: 16px;
+    transition: color 0.2s ease;
+}
+
+.hs-faq-q:hover {
+    color: #d95f3b;
+}
+
+.hs-faq-chevron {
+    flex-shrink: 0;
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: #ff7e5f;
+    line-height: 1;
+}
+
+.hs-faq-a {
+    padding: 0 4px 22px;
+    font-size: 0.96rem;
+    color: rgba(26, 26, 26, 0.7);
+    line-height: 1.75;
+    animation: faqFadeIn 0.25s ease;
+}
+
+@keyframes faqFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── CTA Banner ── */
+.hs-cta-banner {
+    position: relative;
+    background: #1a1a1a;
+    border-radius: 28px;
+    padding: 64px 48px;
+    text-align: center;
+    overflow: hidden;
+    color: #f7f1ea;
+    z-index: 1;
+}
+
+.hs-cta-glow {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 126, 95, 0.28), transparent 65%);
+    top: -130px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: blur(48px);
+    pointer-events: none;
+    animation: hsPulse 5s ease-in-out infinite;
+}
+
+.hs-cta-title {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+    color: #f7f1ea;
+}
+
+.hs-cta-sub {
+    font-size: 1rem;
+    color: rgba(247, 241, 234, 0.65);
+    max-width: 480px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+}
+
+.hs-cta-btn {
+    background: linear-gradient(90deg, #ff7e5f, #feb47b) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+    font-size: 1rem;
+    padding: 0.9rem 2.4rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hs-cta-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(255, 126, 95, 0.45) !important;
+}
+
+@media (max-width: 600px) {
+    .hs-cta-banner {
+        padding: 48px 24px;
+    }
+}

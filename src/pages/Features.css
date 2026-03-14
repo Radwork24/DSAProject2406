@@ -1,0 +1,192 @@
+/* ── Features Page ── */
+.feat-page {
+    min-height: 100vh;
+    padding: 60px 5vw 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Ambient glow */
+.feat-bg-glow {
+    position: fixed;
+    top: -10%;
+    left: -8%;
+    width: 580px;
+    height: 580px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 126, 95, 0.12), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: glowPulse 8s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+.feat-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    font-size: 0.8rem;
+    color: rgba(26, 26, 26, 0.5);
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.feat-heading {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #1a1a1a;
+    margin-bottom: 64px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Carousel ── */
+.feat-carousel {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Feature Card ── */
+.feat-card {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 56px;
+    background: #fffdf9;
+    border-radius: 32px;
+    padding: 56px 52px;
+    border: 1px solid rgba(26, 26, 26, 0.08);
+    box-shadow: 0 8px 16px rgba(26, 26, 26, 0.05), 0 32px 64px rgba(26, 26, 26, 0.09);
+    min-height: 460px;
+    align-items: center;
+    animation: cardSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
+    position: relative;
+}
+
+/* Orange top bar */
+.feat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    border-radius: 32px 32px 0 0;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ── Left visual column ── */
+.feat-card-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+}
+
+.feat-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 28px;
+    background: rgba(255, 126, 95, 0.06);
+    border: 1px solid rgba(255, 126, 95, 0.18);
+    box-shadow: 0 8px 32px rgba(255, 126, 95, 0.12);
+    animation: iconFloat 4s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* 01 / 06 counter */
+.feat-counter {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: rgba(26, 26, 26, 0.35);
+}
+
+.feat-counter-current {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff7e5f;
+    line-height: 1;
+}
+
+.feat-counter-sep {
+    margin: 0 4px;
+    color: rgba(26, 26, 26, 0.2);
+}
+
+.feat-counter-total {
+    font-size: 1rem;
+    color: rgba(26, 26, 26, 0.35);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .feat-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 40px 28px;
+        gap: 28px;
+    }
+
+    .feat-card-visual {
+        flex-direction: row;
+        justify-content: center;
+        gap: 24px;
+    }
+
+    .feat-carousel {
+        flex-direction: column;
+        gap: 20px;
+    }
+}

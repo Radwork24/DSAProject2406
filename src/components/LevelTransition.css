@@ -1,0 +1,292 @@
+.saga-map-container {
+    width: 100%;
+    margin-top: 24px;
+    padding: 0;
+    /* Removed padding to fit tighter if needed, or keep 24px */
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.map-title {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 5;
+    background: transparent;
+    /* Removed background */
+    width: 100%;
+    text-align: center;
+}
+
+.map-view {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    /* Height removed to allow full expansion */
+    height: auto;
+    background: transparent;
+    border-radius: 12px;
+}
+
+/* Scrollable Modifier - constraints removed for global scrolling */
+.map-view.scrollable {
+    overflow: visible;
+}
+
+.map-path-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* height set dynamically in JSX inline style */
+    pointer-events: none;
+}
+
+.path-line-bg {
+    fill: none;
+    stroke: #333;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Removed path-line-flow styles to stop animation */
+
+/* Level Nodes */
+.level-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #2d302d;
+    border: 4px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.node-inner {
+    font-weight: 800;
+    color: #8a8a8a;
+    font-size: 14px;
+    /* Slightly smaller for 3 digits if needed */
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Completed/Active Styles */
+.node-completed,
+.active {
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    border-color: #fff;
+    box-shadow: 0 0 15px rgba(255, 126, 95, 0.5);
+}
+
+.node-completed .node-inner,
+.active .node-inner {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.node-locked {
+    background: #25282c;
+    border-color: #444;
+}
+
+/* Player Token */
+.player-token {
+    position: absolute;
+    left: var(--start-x);
+    top: var(--start-y);
+    width: 36px;
+    height: 36px;
+    z-index: 10;
+    transform: translate(-50%, -75%);
+    /* Sit on top of the node */
+    transition: all 2s ease-in-out;
+}
+
+.player-token.moving {
+    left: var(--end-x);
+    top: var(--end-y);
+}
+
+.avatar-circle-token {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #fff;
+    color: #ff7e5f;
+    font-weight: 800;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #ff7e5f;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Celebration Popups - Fixed relative to the node */
+.level-complete-pop {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #5fff7f;
+    color: #1a1a1a;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    box-shadow: 0 4px 12px rgba(95, 255, 127, 0.3);
+    z-index: 20;
+}
+
+@keyframes popUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -10px);
+    }
+}
+
+/* Footer Celebration */
+.map-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    /* Overlay at bottom of container */
+    bottom: 24px;
+    left: 0;
+    right: 0;
+    animation: fadeIn 0.5s ease-out 2s forwards;
+    opacity: 0;
+    z-index: 30;
+    background: rgba(30, 30, 30, 0.9);
+    /* Semi-transparent background for readability */
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.celebration-text {
+    font-size: 18px;
+    color: #ff7e5f;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stars-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.star-anim {
+    font-size: 32px;
+    opacity: 0;
+    transform: scale(0.5);
+    animation: starPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+.s1 {
+    animation-delay: 2.1s;
+}
+
+.s2 {
+    animation-delay: 2.3s;
+}
+
+.s3 {
+    animation-delay: 2.5s;
+}
+
+@keyframes starPop {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Loading Overlay */
+.level-loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(30, 30, 30, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: 12px;
+    animation: fadeIn 0.3s ease-out;
+    backdrop-filter: blur(4px);
+}
+
+.loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 30px;
+    text-align: center;
+    max-width: 80%;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 126, 95, 0.3);
+    border-top: 4px solid #ff7e5f;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loader-quote {
+    color: #e0e0e0;
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.loader-status {
+    color: #8a8a8a;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 10px;
+}

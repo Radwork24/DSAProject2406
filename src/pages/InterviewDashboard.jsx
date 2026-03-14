@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Dashboard.css';
+import './InterviewDashboard.css';
 import { generateExplanation, generateDoubtAnswer, generateExample, generateHintContent, generateCode, debugCode, generateVisualization, generateConceptExplanation } from '../services/groqService';
 import { auth, db } from '../config/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, query, orderBy, getDocs, addDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { getContextForQuestion, getYouTubeVideos } from '../services/webSearchService';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -12,7 +12,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import VizEngine from '../components/VizEngine';
 import LevelTransition from '../components/LevelTransition';
 
-function Dashboard() {
+function InterviewDashboard() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -31,21 +31,12 @@ function Dashboard() {
   const [exampleCounter, setExampleCounter] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [credits, setCredits] = useState(0);
-  const [plan, setPlan] = useState('Free'); // User plan state
-  const [lastResetDate, setLastResetDate] = useState(''); // Store last reset date
   const [originalProblem, setOriginalProblem] = useState('');
   const [searchedTopic, setSearchedTopic] = useState(''); // Store the searched topic for problem generation
   const [citationSources, setCitationSources] = useState([]); // Store sources for citation display
   const [addedConceptLinks, setAddedConceptLinks] = useState({});
   const [conceptsExpanded, setConceptsExpanded] = useState({});
 
-  const [chatHistory, setChatHistory] = useState([]);
-  const [currentChatId, setCurrentChatId] = useState(null);
-  const currentChatIdRef = useRef(null); // Ref for up-to-date ID in closures
-  const [currentUser, setCurrentUser] = useState(null);
-  const [chatToDelete, setChatToDelete] = useState(null); // Custom modal state
-  const [showCreditsModal, setShowCreditsModal] = useState(false); // Insufficient credits modal state
   // Mode selection and Hint Mode state
   const [selectedMode, setSelectedMode] = useState('Explanation Mode');
   const [selectedLanguage, setSelectedLanguage] = useState('Python');
@@ -123,36 +114,36 @@ function Dashboard() {
   useState(() => {
     const greetings = {
       morning: [
-        "Ready to solve some problems?",
-        "Fresh start for new algorithms!",
-        "Time to optimize your day!",
-        "O(1) morning routine loaded.",
-        "Let's debug the day ahead.",
-        "Rise and code!"
+        "Ready to ace your interview?",
+        "Rise and prepare to shine!",
+        "Your dream tech job awaits!",
+        "Morning mock interview time!",
+        "Believe in your preparation today.",
+        "Let's crack that coding interview!"
       ],
       afternoon: [
-        "Keep the momentum going!",
-        "Time for a binary search break?",
-        "Optimizing afternoon productivity.",
-        "Conquering complexities?",
-        "Don't let the bugs bite!",
-        "Stay focused, stay sorted."
+        "Keep pushing, the finish line is close!",
+        "Afternoon system design practice?",
+        "Stay sharp for your upcoming interviews.",
+        "Every problem solved is a step closer.",
+        "Mock interviews make perfect.",
+        "Confidence is key to success!"
       ],
       evening: [
-        "Unwinding with some LeetCode?",
-        "Evening complexity analysis?",
-        "Reviewing today's code?",
-        "Refactoring mode: ON.",
-        "Sunset and syntax errors.",
-        "Wrapping up with big O notation."
+        "Reviewing patterns for tomorrow?",
+        "Evening behavioral question prep?",
+        "Reflecting on today's progress?",
+        "Almost interview-ready!",
+        "Winding down with some light algorithms.",
+        "Great prep session today!"
       ],
       night: [
-        "Hello Night Owl",
-        "Late night coding session!",
-        "O(log n) sleep schedule?",
-        "Debugging dreams?",
-        "Burning the midnight algorithm.",
-        "Quiet hours, clearer logic."
+        "Late night prep? Make it count!",
+        "Dreaming of job offers?",
+        "Rest is important for interviews too!",
+        "One last mock interview before bed?",
+        "Quiet hours, deeper focus.",
+        "You've got this!"
       ]
     };
 
@@ -184,73 +175,22 @@ function Dashboard() {
     // Auth listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setCurrentUser(user);
-        // Try to get name and credits from Firestore first
+        // Try to get name from Firestore first
         try {
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
 
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.name) setUserName(data.name);
-            else if (user.displayName) setUserName(user.displayName);
-
-            // Handle Credits Initialization
-            const today = new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD' local time
-
-            // Handle Plan Initialization
-            if (data.plan) {
-              setPlan(data.plan);
-            } else {
-              setPlan('Free');
-              await updateDoc(docRef, { plan: 'Free' });
-            }
-
-            if (data.credits !== undefined) {
-              if (data.lastResetDate !== today) {
-                // Determine reset amount based on plan
-                const resetAmount = (data.plan === 'Premium') ? 1000 : 10;
-                await updateDoc(docRef, { credits: resetAmount, lastResetDate: today });
-                setCredits(resetAmount);
-                setLastResetDate(today);
-              } else {
-                setCredits(data.credits);
-                setLastResetDate(data.lastResetDate);
-              }
-            } else {
-              // Existing user but no credits assigned yet
-              await updateDoc(docRef, { credits: 10, lastResetDate: today });
-              setCredits(10);
-              setLastResetDate(today);
-            }
-          } else {
-            // New user, create document with initial credits and plan
-            const today = new Date().toLocaleDateString('en-CA');
-            if (user.displayName) setUserName(user.displayName);
-            await setDoc(docRef, {
-              name: user.displayName || 'User',
-              email: user.email,
-              credits: 10,
-              plan: 'Free',
-              lastResetDate: today,
-              createdAt: new Date().toISOString()
-            });
-            setCredits(10);
-            setPlan('Free');
-            setLastResetDate(today);
+          if (docSnap.exists() && docSnap.data().name) {
+            setUserName(docSnap.data().name);
+          } else if (user.displayName) {
+            setUserName(user.displayName);
           }
-
-          // Load user's chat history
-          loadUserChats(user.uid);
         } catch (error) {
           console.error("Error fetching user data:", error);
           if (user.displayName) setUserName(user.displayName);
         }
       } else {
         setUserName('User');
-        setCurrentUser(null);
-        setChatHistory([]);
-        setCredits(0);
       }
     });
 
@@ -259,69 +199,6 @@ function Dashboard() {
       unsubscribe();
     };
   }, []);
-
-  // Helper to load chat history
-  const loadUserChats = async (userId) => {
-    try {
-      const chatsRef = collection(db, "users", userId, "chats");
-      const q = query(chatsRef, orderBy("updatedAt", "desc"));
-      const querySnapshot = await getDocs(q);
-
-      const chats = [];
-      querySnapshot.forEach((doc) => {
-        chats.push({ id: doc.id, ...doc.data() });
-      });
-
-      setChatHistory(chats);
-    } catch (error) {
-      console.error("Error loading chat history:", error);
-    }
-  };
-
-  // Helper to save current chat
-  const saveChatToFirebase = async (messagesToSave, mode, originalProb, isNewChat = false) => {
-    if (!currentUser || messagesToSave.length === 0) return;
-
-    try {
-      const title = originalProb || messagesToSave[0]?.text || 'New Chat';
-      const shortTitle = title.length > 40 ? title.substring(0, 40) + '...' : title;
-
-      const chatData = {
-        title: shortTitle,
-        updatedAt: new Date().toISOString(),
-        messages: messagesToSave,
-        mode: mode,
-        originalProblem: originalProb
-      };
-
-      if (isNewChat || !currentChatIdRef.current) {
-        // Create new chat document
-        chatData.createdAt = new Date().toISOString();
-        const docRef = await addDoc(collection(db, "users", currentUser.uid, "chats"), chatData);
-        setCurrentChatId(docRef.id);
-        currentChatIdRef.current = docRef.id;
-
-        // Update local chat history state
-        setChatHistory(prev => [{ id: docRef.id, ...chatData }, ...prev]);
-      } else {
-        // Update existing chat document
-        const chatRef = doc(db, "users", currentUser.uid, "chats", currentChatIdRef.current);
-        await updateDoc(chatRef, chatData);
-
-        // Update local chat history state
-        setChatHistory(prev => prev.map(chat =>
-          chat.id === currentChatIdRef.current ? { ...chat, ...chatData } : chat
-        ).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
-      }
-    } catch (error) {
-      console.error("Error saving chat:", error);
-      if (error.code === 'permission-denied') {
-        alert("Firestore Permission Denied!\nYour Firebase Security Rules may not allow creating or updating documents in the 'chats' subcollection.\n\nPlease go to Firebase Console > Firestore Database > Rules, and ensure you have something like this replacing your old rules:\n\nrules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId} {\n      allow read, write: if request.auth != null && request.auth.uid == userId;\n      match /chats/{chatId} {\n        allow read, write: if request.auth != null && request.auth.uid == userId;\n      }\n    }\n  }\n}");
-      } else {
-        alert(`Error saving chat to Firebase: ${error.message}`);
-      }
-    }
-  };
 
   // Helper function to get user initials
   const getInitials = (name) => {
@@ -335,15 +212,6 @@ function Dashboard() {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
   };
 
   const toggleConcepts = (messageId) => {
@@ -421,84 +289,6 @@ function Dashboard() {
     setDebugResponse(null);
     setIsDebugging(false);
     setIsErrorsExpanded(true);
-  };
-
-  // Load a chat from history
-  const loadChat = (chat) => {
-    setMessages(chat.messages || []);
-    setCurrentChatId(chat.id);
-    currentChatIdRef.current = chat.id;
-    setOriginalProblem(chat.originalProblem || '');
-    setHasInitialResponse(true);
-
-    const loadedMode = chat.mode || 'Explanation Mode';
-    setSelectedMode(loadedMode);
-
-    // Reset all old popup states
-    setDoubtPopups([]);
-    setMinimizedTiles([]);
-    setExamplePopups([]);
-    setMinimizedExampleTiles([]);
-
-    // Clear and restore mode-specific states based on the chat mode
-    resetHintMode();
-    resetCodeGenMode();
-    resetDebugMode();
-
-    if (loadedMode === 'Hint Mode') {
-      setHintQuestion(chat.originalProblem || '');
-    } else if (loadedMode === 'Code Generation Mode') {
-      setCodeGenQuestion(chat.originalProblem || '');
-    } else if (loadedMode === 'Debugging Mode') {
-      setDebugQuestion(chat.originalProblem || '');
-      // If we saved debug response or errors, we'd restore them here. 
-      // For now, setting the question brings back the UI, though actual errors are lost unless 
-      // they were saved in chat.messages or chat.debugResponse.
-    }
-  };
-
-  // Trigger delete modal
-  const deleteChat = (e, chatId) => {
-    e.stopPropagation(); // prevent triggering loadChat
-    setChatToDelete(chatId);
-  };
-
-  // Cancel deletion
-  const cancelDeleteChat = () => {
-    setChatToDelete(null);
-  };
-
-  // Confirm deletion
-  const confirmDeleteChat = async () => {
-    if (!chatToDelete) return;
-
-    try {
-      if (currentUser) {
-        const chatRef = doc(db, "users", currentUser.uid, "chats", chatToDelete);
-        await deleteDoc(chatRef);
-      }
-
-      // Update local state
-      setChatHistory(prev => prev.filter(chat => chat.id !== chatToDelete));
-
-      // If we deleted the currently active chat, clear the UI
-      if (currentChatIdRef.current === chatToDelete) {
-        setMessages([]);
-        setCurrentChatId(null);
-        currentChatIdRef.current = null;
-        setOriginalProblem('');
-        setHasInitialResponse(false);
-        setInputValue('');
-        resetHintMode();
-        resetCodeGenMode();
-        resetDebugMode();
-      }
-    } catch (error) {
-      console.error("Error deleting chat:", error);
-      alert("Failed to delete chat. Please try again.");
-    } finally {
-      setChatToDelete(null);
-    }
   };
 
   // Generate dummy debugging response
@@ -1055,41 +845,6 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
-    const today = new Date().toLocaleDateString('en-CA');
-
-    // Premium plan: Unlimited requests, no need to check or deduct
-    if (plan !== 'Premium') {
-      // Check if daily reset is needed at the time of submission
-      let currentCredits = credits;
-      if (lastResetDate && lastResetDate !== today) {
-        const resetAmount = 10;
-        currentCredits = resetAmount;
-        setCredits(resetAmount);
-        setLastResetDate(today);
-        if (currentUser) {
-          const userRef = doc(db, "users", currentUser.uid);
-          await updateDoc(userRef, { credits: resetAmount, lastResetDate: today });
-        }
-      }
-
-      // Request logic: Check if user has free requests left (1 per request)
-      if (currentCredits < 1) {
-        setShowCreditsModal(true);
-        return;
-      }
-
-      // Deduct local state immediately for fast UI update
-      setCredits(prev => prev - 1);
-
-      // Deduct in Firestore
-      if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        updateDoc(userRef, {
-          credits: increment(-1)
-        }).catch(err => console.error("Failed to update requests in Firestore:", err));
-      }
-    }
-
     const userText = inputValue.trim();
     setInputValue('');
 
@@ -1144,9 +899,6 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
           setHasInitialResponse(true);
         } finally {
           setIsDebugging(false);
-          // Save the chat after debugging response
-          const currentMsgs = [{ id: Date.now(), type: 'user', text: userText, timestamp: new Date() }];
-          saveChatToFirebase(currentMsgs, 'Debugging Mode', originalProblem);
         }
 
         return;
@@ -1273,9 +1025,6 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
           setHasInitialResponse(true);
         } finally {
           setIsGeneratingCode(false);
-          // Save chat after code generation
-          const currentMsgs = [{ id: Date.now(), type: 'user', text: userText, timestamp: new Date() }];
-          saveChatToFirebase(currentMsgs, 'Code Generation Mode', originalProblem);
         }
         return;
       }
@@ -1566,7 +1315,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
             sources = [];
           }
 
-          let finalFullText = '';
+          setIsSearching(false);
           // Step 2: Call Groq API with streaming for concept explanation
           await generateConceptExplanation(userText, (chunk, fullText) => {
             // Force remove "Problem Summary" if it appears (as a failsafe)
@@ -1574,26 +1323,13 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
               .replace(/\*\*Problem Summary\*\*[\s\S]*?(?=\*\*Concept Overview\*\*)/i, '')
               .trim();
 
-            finalFullText = cleanedText || fullText;
-
             // Update the AI response with streaming content
-            setMessages(prev => {
-              const newMsgs = prev.map(msg =>
-                msg.id === aiResponseId
-                  ? { ...msg, text: finalFullText }
-                  : msg
-              );
-              return newMsgs;
-            });
+            setMessages(prev => prev.map(msg =>
+              msg.id === aiResponseId
+                ? { ...msg, text: cleanedText || fullText }
+                : msg
+            ));
           }, webContext);
-
-          // Save chat when stream is done using closure variables
-          const finalMessages = [
-            ...messages,
-            userMessage,
-            { ...aiResponse, text: finalFullText }
-          ];
-          saveChatToFirebase(finalMessages, 'Teach Me Concept Mode', originalProblem);
 
           setHasInitialResponse(true);
 
@@ -1650,28 +1386,15 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         setIsSearching(false);
         setIsLoading(true);
 
-        let finalFullText = '';
         // Step 2: Call Groq API with streaming for explanation + web context
         await generateExplanation(userText, (chunk, fullText) => {
-          finalFullText = fullText;
           // Update the AI response with streaming content
-          setMessages(prev => {
-            const newMsgs = prev.map(msg =>
-              msg.id === aiResponseId
-                ? { ...msg, text: fullText }
-                : msg
-            );
-            return newMsgs;
-          });
+          setMessages(prev => prev.map(msg =>
+            msg.id === aiResponseId
+              ? { ...msg, text: fullText }
+              : msg
+          ));
         }, webContext);
-
-        // Save on stream completion using closure variables
-        const finalMessages = [
-          ...messages,
-          userMessage,
-          { ...aiResponse, text: finalFullText }
-        ];
-        saveChatToFirebase(finalMessages, 'Explanation Mode', originalProblem);
 
         setHasInitialResponse(true);
       } catch (error) {
@@ -1840,20 +1563,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         <div className="sidebar-content">
           {sidebarOpen ? (
             <div className="sidebar-nav">
-              <div
-                className="sidebar-nav-item active"
-                onClick={() => {
-                  setMessages([]);
-                  setCurrentChatId(null);
-                  currentChatIdRef.current = null;
-                  setOriginalProblem('');
-                  setHasInitialResponse(false);
-                  setInputValue('');
-                  resetHintMode();
-                  resetCodeGenMode();
-                  resetDebugMode();
-                }}
-              >
+              <div className="sidebar-nav-item active">
                 <div className="icon-circle orange">
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -1866,51 +1576,31 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                   <path d="M10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M10 7V10M10 13H10.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span>Recent Chats</span>
+                <span>Chats</span>
               </div>
-              {chatHistory.length > 0 && (
-                <div className="chat-history-list" style={{ marginLeft: "10px", marginTop: "5px", marginBottom: "15px", display: "flex", flexDirection: "column", gap: "5px" }}>
-                  {chatHistory.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className={`sidebar-history-item ${currentChatId === chat.id ? 'active' : ''}`}
-                      onClick={() => loadChat(chat)}
-                      style={{
-                        padding: "8px 12px",
-                        fontSize: "0.85rem",
-                        color: currentChatId === chat.id ? "#fff" : "#9ca3af",
-                        background: currentChatId === chat.id ? "linear-gradient(90deg, rgba(255, 126, 95, 0.15) 0%, transparent 100%)" : "transparent",
-                        borderLeft: currentChatId === chat.id ? "2px solid #ff7e5f" : "2px solid transparent",
-                        cursor: "pointer",
-                        borderRadius: "4px",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        transition: "all 0.2s ease",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center"
-                      }}
-                      title={chat.title}
-                    >
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{chat.title}</span>
-                      <div
-                        onClick={(e) => deleteChat(e, chat.id)}
-                        style={{ padding: "0 4px", cursor: "pointer", opacity: 0.6 }}
-                        title="Delete chat"
-                        onMouseOver={(e) => e.currentTarget.style.opacity = 1}
-                        onMouseOut={(e) => e.currentTarget.style.opacity = 0.6}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="12" cy="5" r="2" fill="currentColor" />
-                          <circle cx="12" cy="12" r="2" fill="currentColor" />
-                          <circle cx="12" cy="19" r="2" fill="currentColor" />
-                        </svg>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="sidebar-nav-item">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="11" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="3" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="11" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Projects</span>
+              </div>
+              <div className="sidebar-nav-item">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 4H16V16H4V4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 8H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Artifacts</span>
+              </div>
+              <div className="sidebar-nav-item">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 3L4 10L12 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M16 3L8 10L16 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Code</span>
+              </div>
             </div>
           ) : (
             <div className="sidebar-icons-collapsed">
@@ -1927,28 +1617,44 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                   <path d="M10 7V10M10 13H10.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
+              <div className="sidebar-icon">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="11" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="3" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="11" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="sidebar-icon">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 4H16V16H4V4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 8H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="sidebar-icon">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 3L4 10L12 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M16 3L8 10L16 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
             </div>
           )}
         </div>
 
         <div className="sidebar-footer">
           {sidebarOpen ? (
-            <div className="sidebar-user-profile" onClick={handleLogout} title="Log Out">
+            <div className="sidebar-user-profile">
               <div className="avatar-circle">{getInitials(userName)}</div>
               <div className="user-info">
                 <div className="user-name">{userName.toUpperCase()}</div>
-                <div className="user-plan" style={{ color: '#ff7e5f' }}>Log Out</div>
+                <div className="user-plan">Free plan</div>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           ) : (
-            <div className="avatar-circle" onClick={handleLogout} title="Log Out" style={{ cursor: 'pointer' }}>
-              {getInitials(userName)}
-            </div>
+            <div className="avatar-circle">{getInitials(userName)}</div>
           )}
         </div>
       </aside>
@@ -1958,8 +1664,8 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         {/* Top Bar */}
         <div className="dashboard-topbar">
           <div className="upgrade-banner">
-            <span className="upgrade-text">Requests Left: {plan === 'Premium' ? 'Unlimited' : credits}</span>
-            <span className="upgrade-text" style={{ marginLeft: '10px', backgroundColor: 'rgba(255, 126, 95, 0.2)', color: '#ff7e5f' }}>{plan} Plan</span>
+            <span className="upgrade-text">Free plan</span>
+            <span className="upgrade-link">Upgrade</span>
           </div>
 
         </div>
@@ -2568,87 +2274,88 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
           )
         }
 
-        {/* First Input Area - Only show before first response (or before hint question or code gen question or debug question) */}
-        {
-          !messages.some(msg => msg.type === 'ai') && !hintQuestion && !codeGenQuestion && !debugQuestion && (
-            <div className="dashboard-input-area">
-              <div className="input-container input-container-top-button">
-                <form onSubmit={handleSubmit}>
-                  <textarea
-                    className="dashboard-input"
-                    placeholder={selectedMode === 'Debugging Mode' ? 'Paste your code here for debugging' : 'Type or Paste your question here'}
-                    rows="3"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit(e);
-                      }
-                    }}
-                  />
-                  <div className="input-footer">
-                    <div className="input-footer-left"></div>
-                    <div className="input-footer-right">
-                      <select
-                        className="model-selector"
-                        value={selectedMode}
-                        onChange={(e) => {
-                          const newMode = e.target.value;
-                          setSelectedMode(newMode);
+        {/* Interview Dashboard Content */}
+        {!messages.some(msg => msg.type === 'ai') && !hintQuestion && !codeGenQuestion && !debugQuestion && (
+          <div className="interview-content-area">
 
-                          // Reset states when switching modes
-                          setHasInitialResponse(false);
-                          setMessages([]);
-                          setInputValue('');
-
-                          if (newMode !== 'Hint Mode') {
-                            resetHintMode();
-                          }
-                        }}
-                      >
-                        <option>Explanation Mode</option>
-                        <option>Hint Mode</option>
-                        <option>Debugging Mode</option>
-                        <option>Code Generation Mode</option>
-                        <option>Teach Me Concept Mode</option>
-                      </select>
-                      {selectedMode === 'Code Generation Mode' && (
-                        <select
-                          className="model-selector language-selector"
-                          value={selectedLanguage}
-                          onChange={(e) => setSelectedLanguage(e.target.value)}
-                        >
-                          <option>Python</option>
-                          <option>C++</option>
-                          <option>Java</option>
-                          <option>JavaScript</option>
-                        </select>
-                      )}
-                      <button type="submit" className="send-button">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 10L17 3L11 17L9 10L3 10Z" fill="#FF7E5F" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </form>
+            {/* Companies Section */}
+            <div className="interview-section">
+              <h2 className="interview-section-title">Top Tech Companies</h2>
+              <div className="company-logos-grid">
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Google' } })}><span className="company-logo google-logo">G</span><span className="company-name">Google</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Amazon' } })}><span className="company-logo amazon-logo">a</span><span className="company-name">Amazon</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Meta' } })}><span className="company-logo meta-logo">M</span><span className="company-name">Meta</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Microsoft' } })}><span className="company-logo microsoft-logo">MS</span><span className="company-name">Microsoft</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Netflix' } })}><span className="company-logo netflix-logo">N</span><span className="company-name">Netflix</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Apple' } })}><span className="company-logo apple-logo"></span><span className="company-name">Apple</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Deloitte' } })}><span className="company-logo deloitte-logo">D</span><span className="company-name">Deloitte</span></div>
+                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Uber' } })}><span className="company-logo uber-logo">U</span><span className="company-name">Uber</span></div>
               </div>
             </div>
-          )
-        }
+
+            {/* Roles Section */}
+            <div className="interview-section">
+              <h2 className="interview-section-title">Interview Roles</h2>
+              <div className="roles-grid">
+                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Software Engineer' } })}>
+                  <div className="role-icon">💻</div>
+                  <div className="role-details">
+                    <div className="role-title">Software Engineer</div>
+                    <div className="role-desc">DSA, System Design, LLD</div>
+                  </div>
+                </div>
+                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Data Scientist' } })}>
+                  <div className="role-icon">📊</div>
+                  <div className="role-details">
+                    <div className="role-title">Data Scientist</div>
+                    <div className="role-desc">Machine Learning, Stats, SQL</div>
+                  </div>
+                </div>
+                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Frontend Developer' } })}>
+                  <div className="role-icon">🎨</div>
+                  <div className="role-details">
+                    <div className="role-title">Frontend Developer</div>
+                    <div className="role-desc">React, DOM, Web Vitals</div>
+                  </div>
+                </div>
+                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Backend Developer' } })}>
+                  <div className="role-icon">⚙️</div>
+                  <div className="role-details">
+                    <div className="role-title">Backend Developer</div>
+                    <div className="role-desc">API Design, DB Scaling, Node</div>
+                  </div>
+                </div>
+                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Mobile Developer' } })}>
+                  <div className="role-icon">📱</div>
+                  <div className="role-details">
+                    <div className="role-title">Mobile Developer</div>
+                    <div className="role-desc">iOS, Android, React Native</div>
+                  </div>
+                </div>
+                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Cloud / DevOps' } })}>
+                  <div className="role-icon">☁️</div>
+                  <div className="role-details">
+                    <div className="role-title">Cloud / DevOps</div>
+                    <div className="role-desc">AWS, CI/CD, Kubernetes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
 
         {/* Mode Switcher */}
         <div className="dashboard-mode-switcher-container">
           <div className="mode-capsule">
-            <div className="mode-option active">Solving Mode</div>
-            <div className="mode-divider"></div>
             <div
               className="mode-option"
-              onClick={() => navigate('/interview-dashboard')}
+              onClick={() => navigate('/dashboard')}
             >
-              Interview Mode
+              Solving Mode
             </div>
+            <div className="mode-divider"></div>
+            <div className="mode-option active">Interview Mode</div>
           </div>
         </div>
 
@@ -2680,7 +2387,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                     placeholder={selectedMode === 'Hint Mode' && (revealedHints.length > 0 || revealedHintCards.length > 0)
                       ? "Type @ to mention a hint, then ask your doubt or request an example!"
                       : "Ask Me any doubt related to this response!"}
-                    rows="3"
+                    rows="1"
                     value={inputValue}
                     onChange={selectedMode === 'Hint Mode' ? handleHintInputChange : (e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => {
@@ -3041,71 +2748,8 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
           </div>
         )
       }
-
-      {/* Delete Confirmation Modal */}
-      {chatToDelete && (
-        <div className="delete-modal-overlay">
-          <div className="delete-modal">
-            <div className="delete-modal-header">
-              <h3>Delete Chat</h3>
-              <button className="close-modal-btn" onClick={cancelDeleteChat}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-            <div className="delete-modal-body">
-              <p>Are you sure you want to delete this chat?</p>
-              <p className="delete-modal-warning">This action cannot be undone.</p>
-            </div>
-            <div className="delete-modal-footer">
-              <button className="delete-cancel-btn" onClick={cancelDeleteChat}>Cancel</button>
-              <button className="delete-confirm-btn" onClick={confirmDeleteChat}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Insufficient Requests Modal */}
-      {showCreditsModal && (
-        <div className="delete-modal-overlay">
-          <div className="delete-modal">
-            <div className="delete-modal-header">
-              <h3>Free Plan Limit Reached</h3>
-              <button className="close-modal-btn" onClick={() => setShowCreditsModal(false)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-            <div className="delete-modal-body">
-              <p>You have exhausted your 10 free daily requests. Upgrade to Premium for unlimited access!</p>
-              <p className="delete-modal-warning">
-                Free requests renew in: {(() => {
-                  const now = new Date();
-                  const midnight = new Date(now);
-                  midnight.setHours(24, 0, 0, 0);
-                  const diffMs = midnight - now;
-                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                  return `${diffHours > 0 ? `${diffHours} hr ` : ''}${diffMinutes} min`;
-                })()}
-              </p>
-            </div>
-            <div className="delete-modal-footer">
-              <button className="delete-cancel-btn" onClick={() => setShowCreditsModal(false)}>Close</button>
-              <button className="delete-confirm-btn" onClick={() => {
-                setShowCreditsModal(false);
-                navigate('/pricing');
-              }}>Go Premium</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </div >
   );
 }
 
-export default Dashboard;
+export default InterviewDashboard;
