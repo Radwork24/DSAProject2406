@@ -3,9 +3,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../pages/Team.css';
 
-import mohitImg from '/Users/mohitgurjar/.gemini/antigravity/brain/ce4b749b-a4c8-4e6b-bead-1906920de9b0/team_mohit_1773211088060.png';
-import abhayImg from '/Users/mohitgurjar/.gemini/antigravity/brain/ce4b749b-a4c8-4e6b-bead-1906920de9b0/team_abhay_1773211103893.png';
-import yogeshImg from '/Users/mohitgurjar/.gemini/antigravity/brain/ce4b749b-a4c8-4e6b-bead-1906920de9b0/team_yogesh_1773211139971.png';
+const mohitImg = '/team/mohit.png';
+const abhayImg = '/team/abhay.png';
+const yogeshImg = '/team/yogesh.png';
 
 const members = [
     {
