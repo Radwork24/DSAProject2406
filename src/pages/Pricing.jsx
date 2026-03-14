@@ -1,10 +1,124 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { auth, db } from '../config/firebase';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import './Pricing.css';
 
 function Pricing() {
     const navigate = useNavigate();
     const [billingCycle, setBillingCycle] = useState('Yearly');
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handlePayment = async (planName, amount, durationMonths) => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert('Please login to purchase a subscription.');
+            navigate('/login');
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            // 1. Create order on the backend 
+            const baseUrl = window.location.hostname === 'localhost' ? '' : ''; // Relative path for both Vite dev and Vercel
+            const res = await fetch(`${baseUrl}/api/createOrder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount, receipt: user.uid }),
+            });
+            const order = await res.json();
+
+            if (!order || !order.id) {
+                throw new Error("Failed to create order");
+            }
+
+            // 2. Open Razorpay Checkout Modal
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                name: "AlgoZen Premium",
+                description: `Subscription for ${planName}`,
+                order_id: order.id,
+                handler: async function (response) {
+                    try {
+                        // 3. Verify Payment
+                        const verifyRes = await fetch(`${baseUrl}/api/verifyPayment`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            // 4. Update Firebase Firestore
+                            const userRef = doc(db, 'users', user.uid);
+                            const userSnap = await getDoc(userRef);
+
+                            let startDate = new Date();
+                            if (userSnap.exists()) {
+                                const data = userSnap.data();
+                                // Stack subscriptions if they already have an active one
+                                if (data.subscriptionEndDate && data.subscriptionEndDate.toDate() > new Date()) {
+                                    startDate = data.subscriptionEndDate.toDate();
+                                }
+                            }
+
+                            const endDate = new Date(startDate);
+                            endDate.setMonth(endDate.getMonth() + durationMonths);
+
+                            await updateDoc(userRef, {
+                                isPremium: true,
+                                plan: planName,
+                                requestCount: 0, // reset requests
+                                subscriptionStartDate: serverTimestamp(),
+                                subscriptionEndDate: endDate,
+                                recentPayment: {
+                                    id: response.razorpay_payment_id,
+                                    orderId: response.razorpay_order_id,
+                                    date: new Date().toISOString()
+                                }
+                            });
+
+                            alert('Payment successful! Your premium subscription is active.');
+                            navigate('/dashboard');
+                        } else {
+                            alert('Payment verification failed. Please contact support.');
+                        }
+                    } catch (error) {
+                        console.error('Error verifying payment:', error);
+                        alert('Error updating subscription. Please check your dashboard or contact support.');
+                    } finally {
+                        setIsProcessing(false);
+                    }
+                },
+                prefill: {
+                    email: user.email,
+                },
+                theme: {
+                    color: "#0b0f19" // matching AlgoZen dark vibe
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                console.error(response.error);
+                alert('Payment Failed: ' + response.error.description);
+                setIsProcessing(false);
+            });
+            rzp.open();
+
+        } catch (error) {
+            console.error('Error initiating payment:', error);
+            alert('Could not initiate payment. Server might be warming up, please try again.');
+            setIsProcessing(false);
+        }
+    };
 
     return (
         <div className="pricing-container">
@@ -34,7 +148,9 @@ function Pricing() {
                                 <div>billed monthly</div>
                             </div>
                         </div>
-                        <button className="plan-action-btn secondary-btn" onClick={() => alert('Redirecting to payment...')}>Get 1 Month Plan</button>
+                        <button className="plan-action-btn secondary-btn" disabled={isProcessing} onClick={() => handlePayment('1 Month', 99, 1)}>
+                            {isProcessing ? 'Processing...' : 'Get 1 Month Plan'}
+                        </button>
                     </div>
                     <div className="card-features">
                         <ul>
@@ -71,7 +187,9 @@ function Pricing() {
                                 <div>billed every 3 months</div>
                             </div>
                         </div>
-                        <button className="plan-action-btn primary-btn" onClick={() => alert('Redirecting to payment...')}>Get 3 Month Plan</button>
+                        <button className="plan-action-btn primary-btn" disabled={isProcessing} onClick={() => handlePayment('3 Months', 249, 3)}>
+                            {isProcessing ? 'Processing...' : 'Get 3 Month Plan'}
+                        </button>
                     </div>
                     <div className="card-features">
                         <p className="feature-title">Everything in 1 Month, and:</p>
@@ -110,7 +228,9 @@ function Pricing() {
                                 <div>billed annually</div>
                             </div>
                         </div>
-                        <button className="plan-action-btn primary-btn" onClick={() => alert('Redirecting to payment...')}>Get Yearly Plan</button>
+                        <button className="plan-action-btn primary-btn" disabled={isProcessing} onClick={() => handlePayment('12 Months', 999, 12)}>
+                            {isProcessing ? 'Processing...' : 'Get Yearly Plan'}
+                        </button>
                     </div>
                     <div className="card-features">
                         <p className="feature-title">Everything in 3 Months, plus:</p>

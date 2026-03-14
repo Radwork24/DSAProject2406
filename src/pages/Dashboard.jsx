@@ -33,6 +33,7 @@ function Dashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [credits, setCredits] = useState(0);
   const [plan, setPlan] = useState('Free'); // User plan state
+  const [isPremium, setIsPremium] = useState(false); // Valid premium subscription state
   const [lastResetDate, setLastResetDate] = useState(''); // Store last reset date
   const [originalProblem, setOriginalProblem] = useState('');
   const [searchedTopic, setSearchedTopic] = useState(''); // Store the searched topic for problem generation
@@ -195,21 +196,29 @@ function Dashboard() {
             if (data.name) setUserName(data.name);
             else if (user.displayName) setUserName(user.displayName);
 
-            // Handle Credits Initialization
+            // Handle Credits and Plan Initialization
             const today = new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD' local time
 
-            // Handle Plan Initialization
-            if (data.plan) {
-              setPlan(data.plan);
-            } else {
-              setPlan('Free');
-              await updateDoc(docRef, { plan: 'Free' });
+            // Evaluate if user is currently premium and has an active subscription
+            let currentPlan = data.plan || 'Free';
+            let currentIsPremium = data.isPremium || currentPlan === 'Premium';
+
+            if (currentIsPremium && data.subscriptionEndDate) {
+              // If the subscription is expired, reset to free
+              if (data.subscriptionEndDate.toDate() < new Date()) {
+                currentIsPremium = false;
+                currentPlan = 'Free';
+                await updateDoc(docRef, { isPremium: false, plan: 'Free' });
+              }
             }
+
+            setPlan(currentPlan);
+            setIsPremium(currentIsPremium);
 
             if (data.credits !== undefined) {
               if (data.lastResetDate !== today) {
-                // Determine reset amount based on plan
-                const resetAmount = (data.plan === 'Premium') ? 1000 : 10;
+                // Determine reset amount based on premium status
+                const resetAmount = currentIsPremium ? 1000 : 10;
                 await updateDoc(docRef, { credits: resetAmount, lastResetDate: today });
                 setCredits(resetAmount);
                 setLastResetDate(today);
@@ -219,8 +228,9 @@ function Dashboard() {
               }
             } else {
               // Existing user but no credits assigned yet
-              await updateDoc(docRef, { credits: 10, lastResetDate: today });
-              setCredits(10);
+              const resetAmount = currentIsPremium ? 1000 : 10;
+              await updateDoc(docRef, { credits: resetAmount, lastResetDate: today });
+              setCredits(resetAmount);
               setLastResetDate(today);
             }
           } else {
@@ -232,11 +242,13 @@ function Dashboard() {
               email: user.email,
               credits: 10,
               plan: 'Free',
+              isPremium: false,
               lastResetDate: today,
               createdAt: new Date().toISOString()
             });
             setCredits(10);
             setPlan('Free');
+            setIsPremium(false);
             setLastResetDate(today);
           }
 
@@ -1058,7 +1070,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
     const today = new Date().toLocaleDateString('en-CA');
 
     // Premium plan: Unlimited requests, no need to check or deduct
-    if (plan !== 'Premium') {
+    if (!isPremium) {
       // Check if daily reset is needed at the time of submission
       let currentCredits = credits;
       if (lastResetDate && lastResetDate !== today) {
@@ -1958,7 +1970,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         {/* Top Bar */}
         <div className="dashboard-topbar">
           <div className="upgrade-banner">
-            <span className="upgrade-text">Requests Left: {plan === 'Premium' ? 'Unlimited' : credits}</span>
+            <span className="upgrade-text">Requests Left: {isPremium ? 'Unlimited' : credits}</span>
             <span className="upgrade-text" style={{ marginLeft: '10px', backgroundColor: 'rgba(255, 126, 95, 0.2)', color: '#ff7e5f' }}>{plan} Plan</span>
           </div>
 
