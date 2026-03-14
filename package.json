@@ -1,7 +1,7 @@
 {
-  "name": "dsa-project-2406",
+  "name": "Algozen",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "animejs": "^4.2.2",
     "firebase": "^12.7.0",
     "groq-sdk": "^0.37.0",
@@ -17,7 +19,8 @@
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.6",
-    "react-syntax-highlighter": "^16.1.0"
+    "react-syntax-highlighter": "^16.1.0",
+    "three": "^0.183.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
