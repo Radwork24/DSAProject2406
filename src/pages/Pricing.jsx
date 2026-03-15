@@ -19,8 +19,16 @@ function Pricing() {
 
         setIsProcessing(true);
         try {
-            // 1. Create order on the backend 
-            const baseUrl = window.location.hostname === 'localhost' ? '' : ''; // Relative path for both Vite dev and Vercel
+            const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+            if (!keyId) {
+                throw new Error('Razorpay key is not configured. Add VITE_RAZORPAY_KEY_ID to your .env file.');
+            }
+            if (typeof window.Razorpay === 'undefined') {
+                throw new Error('Razorpay checkout script failed to load. Check your connection and refresh.');
+            }
+
+            // 1. Create order on the backend
+            const baseUrl = '';
             const res = await fetch(`${baseUrl}/api/createOrder`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -28,13 +36,16 @@ function Pricing() {
             });
             const order = await res.json();
 
+            if (!res.ok) {
+                throw new Error(order?.error || `Server error (${res.status}). Check that the dev server is running and Razorpay keys are set.`);
+            }
             if (!order || !order.id) {
-                throw new Error("Failed to create order");
+                throw new Error(order?.error || 'Failed to create order');
             }
 
             // 2. Open Razorpay Checkout Modal
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                key: keyId,
                 amount: order.amount,
                 currency: order.currency,
                 name: "AlgoZen Premium",
@@ -115,7 +126,8 @@ function Pricing() {
 
         } catch (error) {
             console.error('Error initiating payment:', error);
-            alert('Could not initiate payment. Server might be warming up, please try again.');
+            const message = error?.message || 'Could not initiate payment. Please try again.';
+            alert(message);
             setIsProcessing(false);
         }
     };

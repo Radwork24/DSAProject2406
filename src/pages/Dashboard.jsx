@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { generateExplanation, generateDoubtAnswer, generateExample, generateHintContent, generateCode, debugCode, generateVisualization, generateConceptExplanation } from '../services/groqService';
@@ -47,6 +47,8 @@ function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [chatToDelete, setChatToDelete] = useState(null); // Custom modal state
   const [showCreditsModal, setShowCreditsModal] = useState(false); // Insufficient credits modal state
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // Logout confirmation modal
+  const [collapsedUserQueries, setCollapsedUserQueries] = useState({}); // messageId -> true when collapsed (show less)
   // Mode selection and Hint Mode state
   const [selectedMode, setSelectedMode] = useState('Explanation Mode');
   const [selectedLanguage, setSelectedLanguage] = useState('Python');
@@ -75,6 +77,23 @@ function Dashboard() {
   const [hintMentionFilter, setHintMentionFilter] = useState('');
   const [selectedHintContext, setSelectedHintContext] = useState(null);
   const secondInputRef = useRef(null);
+  const firstInputRef = useRef(null);
+
+  // Auto-resize textarea with content (Claude-style), min 52px, max 320px
+  const autoResizeTextarea = (ta) => {
+    if (!ta) return;
+    ta.style.height = 'auto';
+    const minH = 52;
+    const maxH = 320;
+    const h = Math.min(maxH, Math.max(minH, ta.scrollHeight));
+    ta.style.height = h + 'px';
+  };
+
+  // Resize input when value changes (typing or paste)
+  useEffect(() => {
+    if (firstInputRef.current) autoResizeTextarea(firstInputRef.current);
+    if (secondInputRef.current) autoResizeTextarea(secondInputRef.current);
+  }, [inputValue]);
 
   // Hint Card responses (general hints) - NOW IN STATE
   const [hintCardResponses, setHintCardResponses] = useState({
@@ -351,6 +370,7 @@ function Dashboard() {
 
   const handleLogout = async () => {
     try {
+      setShowLogoutModal(false);
       await signOut(auth);
       navigate('/login');
     } catch (error) {
@@ -1945,7 +1965,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         <div className="sidebar-footer">
           {sidebarOpen ? (
-            <div className="sidebar-user-profile" onClick={handleLogout} title="Log Out">
+            <div className="sidebar-user-profile" onClick={() => setShowLogoutModal(true)} title="Log Out">
               <div className="avatar-circle">{getInitials(userName)}</div>
               <div className="user-info">
                 <div className="user-name">{userName.toUpperCase()}</div>
@@ -1958,7 +1978,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
               </svg>
             </div>
           ) : (
-            <div className="avatar-circle" onClick={handleLogout} title="Log Out" style={{ cursor: 'pointer' }}>
+            <div className="avatar-circle" onClick={() => setShowLogoutModal(true)} title="Log Out" style={{ cursor: 'pointer' }}>
               {getInitials(userName)}
             </div>
           )}
@@ -2510,7 +2530,20 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                       {/* User Query */}
                       <div className="user-query">
                         <div className="query-avatar">{getInitials(userName)}</div>
-                        <div className="query-text">{message.text}</div>
+                        <div className="query-text-wrapper">
+                          <div className={`query-text ${message.text.length > 120 && collapsedUserQueries[message.id] !== false ? 'query-text-collapsed' : ''}`}>
+                            {message.text}
+                          </div>
+                          {message.text.length > 120 && (
+                            <button
+                              type="button"
+                              className="query-show-more-less"
+                              onClick={() => setCollapsedUserQueries(prev => ({ ...prev, [message.id]: prev[message.id] === false }))}
+                            >
+                              {collapsedUserQueries[message.id] === false ? 'Show less' : 'Show more'}
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* AI Response */}
@@ -2587,9 +2620,9 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
               <div className="input-container input-container-top-button">
                 <form onSubmit={handleSubmit}>
                   <textarea
+                    ref={firstInputRef}
                     className="dashboard-input"
                     placeholder={selectedMode === 'Debugging Mode' ? 'Paste your code here for debugging' : 'Type or Paste your question here'}
-                    rows="3"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => {
@@ -2692,7 +2725,6 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                     placeholder={selectedMode === 'Hint Mode' && (revealedHints.length > 0 || revealedHintCards.length > 0)
                       ? "Type @ to mention a hint, then ask your doubt or request an example!"
                       : "Ask Me any doubt related to this response!"}
-                    rows="3"
                     value={inputValue}
                     onChange={selectedMode === 'Hint Mode' ? handleHintInputChange : (e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => {
@@ -3074,6 +3106,30 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
             <div className="delete-modal-footer">
               <button className="delete-cancel-btn" onClick={cancelDeleteChat}>Cancel</button>
               <button className="delete-confirm-btn" onClick={confirmDeleteChat}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <div className="delete-modal-header">
+              <h3>Log Out</h3>
+              <button className="close-modal-btn" onClick={() => setShowLogoutModal(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="delete-modal-body">
+              <p>Are you sure you want to logout?</p>
+            </div>
+            <div className="delete-modal-footer">
+              <button className="delete-cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancel</button>
+              <button className="delete-confirm-btn" onClick={handleLogout}>Log Out</button>
             </div>
           </div>
         </div>
