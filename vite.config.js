@@ -9,6 +9,48 @@ import crypto from 'crypto'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
+ * Simple multipart form data parser for STT audio uploads
+ */
+function parseMultipartData(buffer, boundary) {
+  const parts = [];
+  const boundaryBuf = Buffer.from(`--${boundary}`);
+
+  let start = buffer.indexOf(boundaryBuf) + boundaryBuf.length;
+
+  while (start < buffer.length) {
+    let end = buffer.indexOf(boundaryBuf, start);
+    if (end === -1) break;
+
+    const part = buffer.slice(start, end);
+    const headerEnd = part.indexOf('\r\n\r\n');
+    if (headerEnd === -1) {
+      start = end + boundaryBuf.length;
+      continue;
+    }
+
+    const headers = part.slice(0, headerEnd).toString();
+    const body = part.slice(headerEnd + 4, part.length - 2);
+
+    const nameMatch = headers.match(/name="([^"]+)"/);
+    const filenameMatch = headers.match(/filename="([^"]+)"/);
+    const ctMatch = headers.match(/Content-Type:\s*(.+)/i);
+
+    if (nameMatch) {
+      parts.push({
+        name: nameMatch[1],
+        filename: filenameMatch?.[1],
+        contentType: ctMatch?.[1]?.trim(),
+        data: body,
+      });
+    }
+
+    start = end + boundaryBuf.length;
+  }
+
+  return parts;
+}
+
+/**
  * Run Python scraper and get context
  */
 
@@ -180,6 +222,147 @@ function webSearchPlugin(env) {
             }
           } catch (error) {
             res.statusCode = 500; res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      });
+
+      // ── Text-to-Speech (Groq PlayAI TTS) ──
+      server.middlewares.use('/api/tts', async (req, res) => {
+        if (req.method === 'OPTIONS') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'OPTIONS,POST');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+          res.statusCode = 200; res.end(); return;
+        }
+        if (req.method !== 'POST') {
+          res.statusCode = 405; res.end('Method not allowed'); return;
+        }
+
+        let body = '';
+        req.on('data', chunk => { body += chunk });
+        req.on('end', async () => {
+          try {
+            const { text, voice = 'troy' } = JSON.parse(body);
+            if (!text) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'No text provided' }));
+              return;
+            }
+
+            console.log('\n' + '='.repeat(70));
+            console.log('🔊 GROQ TTS REQUEST');
+            console.log('='.repeat(70));
+            console.log('📝 Text:', text.substring(0, 100) + (text.length > 100 ? '...' : ''));
+            console.log('🎙️ Voice:', voice);
+            console.log('-'.repeat(70));
+
+            const Groq = (await import('groq-sdk')).default;
+            // Try multiple key sources — .env.local takes priority over .env in Vite
+            const apiKey = env.VITE_GROQ_API_KEY || env.VITE_HINT_API_KEY || process.env.GROQ_API_KEY;
+            console.log('🔑 Using API key:', apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'MISSING');
+            const groq = new Groq({ apiKey });
+
+            const response = await groq.audio.speech.create({
+              model: 'canopylabs/orpheus-v1-english',
+              voice: voice,
+              input: text,
+              response_format: 'wav',
+            });
+
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            console.log('✅ TTS audio generated:', buffer.length, 'bytes');
+            console.log('='.repeat(70) + '\n');
+
+            res.setHeader('Content-Type', 'audio/wav');
+            res.setHeader('Content-Length', buffer.length);
+            res.end(buffer);
+          } catch (error) {
+            console.error('❌ TTS Error:', error.message);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      });
+
+      // ── Speech-to-Text (Groq Whisper) ──
+      server.middlewares.use('/api/stt', async (req, res) => {
+        if (req.method === 'OPTIONS') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'OPTIONS,POST');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+          res.statusCode = 200; res.end(); return;
+        }
+        if (req.method !== 'POST') {
+          res.statusCode = 405; res.end('Method not allowed'); return;
+        }
+
+        // Collect raw body as buffer
+        const chunks = [];
+        req.on('data', chunk => { chunks.push(chunk) });
+        req.on('end', async () => {
+          try {
+            const buffer = Buffer.concat(chunks);
+
+            console.log('\n' + '='.repeat(70));
+            console.log('🎤 GROQ STT REQUEST');
+            console.log('='.repeat(70));
+            console.log('📦 Audio size:', buffer.length, 'bytes');
+            console.log('-'.repeat(70));
+
+            // Parse multipart form data
+            const contentType = req.headers['content-type'] || '';
+            const boundaryMatch = contentType.match(/boundary=(.+)/);
+            if (!boundaryMatch) {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Missing multipart boundary' }));
+              return;
+            }
+
+            const boundary = boundaryMatch[1];
+            const parts = parseMultipartData(buffer, boundary);
+            const audioPart = parts.find(p => p.name === 'file');
+
+            if (!audioPart) {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'No audio file found' }));
+              return;
+            }
+
+            const Groq = (await import('groq-sdk')).default;
+            const apiKey = env.VITE_GROQ_API_KEY || env.VITE_HINT_API_KEY || process.env.GROQ_API_KEY;
+            console.log('🔑 Using API key:', apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'MISSING');
+            const groq = new Groq({ apiKey });
+
+            // Create a File object for the Groq SDK
+            const audioFile = new File(
+              [audioPart.data],
+              audioPart.filename || 'audio.webm',
+              { type: audioPart.contentType || 'audio/webm' }
+            );
+
+            const transcription = await groq.audio.transcriptions.create({
+              file: audioFile,
+              model: 'whisper-large-v3-turbo',
+              language: 'en',
+              response_format: 'json',
+              temperature: 0.0,
+            });
+
+            console.log('✅ Transcription:', transcription.text);
+            console.log('='.repeat(70) + '\n');
+
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ text: transcription.text }));
+          } catch (error) {
+            console.error('❌ STT Error:', error.message);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: error.message }));
           }
         });
       });
