@@ -255,14 +255,25 @@ The JSON must follow this exact schema:
  * Generate answer for a follow-up doubt/question
  * @param {string} doubtText - The follow-up question
  * @param {string} originalProblem - The original problem for context
+ * @param {string} explanationContext - The previous explanation text for richer context
  * @param {Function} onChunk - Callback function to handle streaming chunks
  * @returns {Promise<string>} - The complete AI-generated answer
  */
-export async function generateDoubtAnswer(doubtText, originalProblem = '', onChunk = null) {
-    const prompt = originalProblem
-        ? `Context: The student is working on this DSA problem: "${originalProblem}"
+export async function generateDoubtAnswer(doubtText, originalProblem = '', explanationContext = '', onChunk = null) {
+    const contextParts = [];
+    if (originalProblem) {
+        contextParts.push(`DSA Problem:\n${originalProblem}`);
+    }
+    if (explanationContext) {
+        contextParts.push(`Previous Explanation:\n${explanationContext}`);
+    }
 
-Student's doubt/question: ${doubtText}
+    const fullContext = contextParts.length
+        ? `Context for this doubt:\n${contextParts.join('\n\n')}\n\n`
+        : '';
+
+    const prompt = fullContext
+        ? `${fullContext}Student's doubt/question: ${doubtText}
 
 Please provide a clear, concise answer to help the student understand better.`
         : `Student's question about DSA: ${doubtText}
@@ -308,14 +319,25 @@ Please provide a clear, helpful answer.`;
  * Generate examples for a DSA problem
  * @param {string} exampleRequest - The example request text
  * @param {string} originalProblem - The original problem for context
+ * @param {string} explanationContext - The previous explanation text for richer context
  * @param {Function} onChunk - Callback function to handle streaming chunks
  * @returns {Promise<string>} - The complete AI-generated examples
  */
-export async function generateExample(exampleRequest, originalProblem = '', onChunk = null) {
-    const prompt = originalProblem
-        ? `Context: The student is working on this DSA problem: "${originalProblem}"
+export async function generateExample(exampleRequest, originalProblem = '', explanationContext = '', onChunk = null) {
+    const contextParts = [];
+    if (originalProblem) {
+        contextParts.push(`DSA Problem:\n${originalProblem}`);
+    }
+    if (explanationContext) {
+        contextParts.push(`Previous Explanation:\n${explanationContext}`);
+    }
 
-Student's request: ${exampleRequest}
+    const fullContext = contextParts.length
+        ? `Context for these examples:\n${contextParts.join('\n\n')}\n\n`
+        : '';
+
+    const prompt = fullContext
+        ? `${fullContext}Student's request: ${exampleRequest}
 
 Please provide similar examples, use cases, or variations of this problem. Include:
 - Similar problem examples with different inputs/outputs

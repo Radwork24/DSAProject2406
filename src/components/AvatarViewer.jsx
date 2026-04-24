@@ -25,7 +25,7 @@ function AvatarViewer({ isTalking = false, isSetup = false }) {
             <div className="av-photo-wrapper">
                 <img
                     src={characterImg}
-                    alt="AI Interviewer"
+                    alt="Ivan"
                     className="av-photo"
                     draggable={false}
                 />
@@ -59,7 +59,7 @@ function AvatarViewer({ isTalking = false, isSetup = false }) {
             <div className="av-badge">
                 <span className={`av-badge-dot ${isTalking ? 'active' : ''}`} />
                 <span className="av-badge-text">
-                    {isTalking ? 'Speaking...' : 'AI Interviewer'}
+                    {isTalking ? 'Speaking...' : 'Ivan'}
                 </span>
             </div>
         </div>

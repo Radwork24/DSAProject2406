@@ -38,6 +38,7 @@ function Dashboard() {
   const [originalProblem, setOriginalProblem] = useState('');
   const [searchedTopic, setSearchedTopic] = useState(''); // Store the searched topic for problem generation
   const [citationSources, setCitationSources] = useState([]); // Store sources for citation display
+  const [lastExplanation, setLastExplanation] = useState(''); // Last main explanation text for follow-up context
   const [addedConceptLinks, setAddedConceptLinks] = useState({});
   const [conceptsExpanded, setConceptsExpanded] = useState({});
 
@@ -1215,7 +1216,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for example
         try {
-          await generateExample(userText, originalProblem, (chunk, fullText) => {
+          await generateExample(userText, originalProblem, lastExplanation, (chunk, fullText) => {
             setExamplePopups(prev => prev.map(popup =>
               popup.id === exampleId
                 ? { ...popup, answer: fullText }
@@ -1250,7 +1251,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for doubt answer
         try {
-          await generateDoubtAnswer(userText, originalProblem, (chunk, fullText) => {
+          await generateDoubtAnswer(userText, originalProblem, lastExplanation, (chunk, fullText) => {
             setDoubtPopups(prev => prev.map(popup =>
               popup.id === doubtId
                 ? { ...popup, answer: fullText }
@@ -1343,7 +1344,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for example
         try {
-          await generateExample(userText, originalProblem, (chunk, fullText) => {
+          await generateExample(userText, originalProblem, lastExplanation, (chunk, fullText) => {
             setExamplePopups(prev => prev.map(popup =>
               popup.id === exampleId
                 ? { ...popup, answer: fullText }
@@ -1378,7 +1379,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for doubt answer
         try {
-          await generateDoubtAnswer(userText, originalProblem, (chunk, fullText) => {
+          await generateDoubtAnswer(userText, originalProblem, lastExplanation, (chunk, fullText) => {
             setDoubtPopups(prev => prev.map(popup =>
               popup.id === doubtId
                 ? { ...popup, answer: fullText }
@@ -1483,7 +1484,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for example
         try {
-          await generateExample(cleanQuery, hintContextText, (chunk, fullText) => {
+          await generateExample(cleanQuery, hintContextText, lastExplanation, (chunk, fullText) => {
             setExamplePopups(prev => prev.map(popup =>
               popup.id === exampleId
                 ? { ...popup, answer: fullText }
@@ -1518,7 +1519,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for doubt answer
         try {
-          await generateDoubtAnswer(cleanQuery, hintContextText, (chunk, fullText) => {
+          await generateDoubtAnswer(cleanQuery, hintContextText, lastExplanation, (chunk, fullText) => {
             setDoubtPopups(prev => prev.map(popup =>
               popup.id === doubtId
                 ? { ...popup, answer: fullText }
@@ -1704,6 +1705,9 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
           { ...aiResponse, text: finalFullText }
         ];
         saveChatToFirebase(finalMessages, 'Explanation Mode', originalProblem);
+
+        // Store explanation for follow-up popups
+        setLastExplanation(finalFullText);
 
         setHasInitialResponse(true);
       } catch (error) {

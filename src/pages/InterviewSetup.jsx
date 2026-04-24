@@ -186,7 +186,7 @@ function InterviewSetup() {
                         <div className="avatar-preview-canvas">
                             <AvatarViewer isTalking={false} isSetup={true} />
                         </div>
-                        <p className="avatar-preview-name">Alex — AI Interviewer</p>
+                        <p className="avatar-preview-name">Ivan</p>
                     </div>
 
                     {/* Right panel — camera + mic + continue */}
