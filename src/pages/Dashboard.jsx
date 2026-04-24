@@ -1753,7 +1753,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for example
         try {
-          await generateExample(userText, originalProblem, (chunk, fullText) => {
+          await generateExample(userText, originalProblem, lastExplanation, (chunk, fullText) => {
             // Update the popup with streaming content
             setExamplePopups(prev => prev.map(popup =>
               popup.id === exampleId
@@ -1789,7 +1789,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         // Call Groq API with streaming for doubt answer
         try {
-          await generateDoubtAnswer(userText, originalProblem, (chunk, fullText) => {
+          await generateDoubtAnswer(userText, originalProblem, lastExplanation, (chunk, fullText) => {
             // Update the popup with streaming content
             setDoubtPopups(prev => prev.map(popup =>
               popup.id === doubtId

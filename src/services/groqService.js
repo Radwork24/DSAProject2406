@@ -28,6 +28,55 @@ const groqCodeGen = new Groq({
     dangerouslyAllowBrowser: true
 });
 
+const shouldFallbackModel = (error) => {
+    const status = error?.status || error?.response?.status;
+    const message = (error?.message || error?.error?.message || '').toLowerCase();
+    return (
+        status === 429 ||
+        status === 503 ||
+        message.includes('rate limit') ||
+        message.includes('quota') ||
+        message.includes('too many requests') ||
+        message.includes('token') ||
+        message.includes('capacity') ||
+        message.includes('overloaded')
+    );
+};
+
+async function streamWithFallback(prompt, onChunk = null, modelChain = EXPLANATION_MODEL_CHAIN) {
+    let lastError = null;
+    for (let i = 0; i < modelChain.length; i++) {
+        const modelName = modelChain[i];
+        try {
+            const chatCompletion = await groq.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: modelName,
+                temperature: 0.7,
+                max_completion_tokens: 2048,
+                top_p: 1,
+                stream: true,
+                stop: null
+            });
+
+            let fullResponse = '';
+            for await (const chunk of chatCompletion) {
+                const content = chunk.choices[0]?.delta?.content || '';
+                if (content) {
+                    fullResponse += content;
+                    if (onChunk) onChunk(content, fullResponse);
+                }
+            }
+            return fullResponse;
+        } catch (error) {
+            lastError = error;
+            const hasNext = i < modelChain.length - 1;
+            if (!hasNext || !shouldFallbackModel(error)) throw error;
+            console.warn(`Model ${modelName} hit limits. Falling back to next model...`);
+        }
+    }
+    throw lastError || new Error('All fallback models failed.');
+}
+
 /**
  * Generate explanation for a DSA problem using Groq API
  * @param {string} problemText - The DSA problem text
@@ -61,67 +110,7 @@ ${problemText}
 
 Please provide a clear, educational explanation. Remember: be direct and concise, and always structure the Problem Summary with the two subsections above.`;
 
-    const shouldFallback = (error) => {
-        const status = error?.status || error?.response?.status;
-        const message = (error?.message || error?.error?.message || '').toLowerCase();
-        return (
-            status === 429 ||
-            status === 503 ||
-            message.includes('rate limit') ||
-            message.includes('quota') ||
-            message.includes('too many requests') ||
-            message.includes('token') ||
-            message.includes('capacity') ||
-            message.includes('overloaded')
-        );
-    };
-
-    let lastError = null;
-
-    for (let i = 0; i < EXPLANATION_MODEL_CHAIN.length; i++) {
-        const modelName = EXPLANATION_MODEL_CHAIN[i];
-        try {
-            const chatCompletion = await groq.chat.completions.create({
-                messages: [
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ],
-                model: modelName,
-                temperature: 0.7,
-                max_completion_tokens: 2048,
-                top_p: 1,
-                stream: true,
-                stop: null
-            });
-
-            let fullResponse = '';
-
-            for await (const chunk of chatCompletion) {
-                const content = chunk.choices[0]?.delta?.content || '';
-                if (content) {
-                    fullResponse += content;
-                    if (onChunk) {
-                        onChunk(content, fullResponse);
-                    }
-                }
-            }
-
-            return fullResponse;
-        } catch (error) {
-            lastError = error;
-            const hasNext = i < EXPLANATION_MODEL_CHAIN.length - 1;
-            if (!hasNext || !shouldFallback(error)) {
-                console.error(`Error calling Groq API on model ${modelName}:`, error);
-                throw error;
-            }
-
-            console.warn(`Model ${modelName} hit limits. Falling back to next model...`);
-        }
-    }
-
-    throw lastError || new Error('All explanation models failed.');
+    return streamWithFallback(prompt, onChunk, EXPLANATION_MODEL_CHAIN);
 }
 
 /**
@@ -293,6 +282,12 @@ The JSON must follow this exact schema:
  * @returns {Promise<string>} - The complete AI-generated answer
  */
 export async function generateDoubtAnswer(doubtText, originalProblem = '', explanationContext = '', onChunk = null) {
+    // Backward compatibility: old callers used (doubtText, originalProblem, onChunk)
+    if (typeof explanationContext === 'function' && onChunk === null) {
+        onChunk = explanationContext;
+        explanationContext = '';
+    }
+
     const contextParts = [];
     if (originalProblem) {
         contextParts.push(`DSA Problem:\n${originalProblem}`);
@@ -313,39 +308,7 @@ Please provide a clear, concise answer to help the student understand better.`
 
 Please provide a clear, helpful answer.`;
 
-    try {
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            model: MODEL,
-            temperature: 0.7,
-            max_completion_tokens: 1024,
-            top_p: 1,
-            stream: true,
-            stop: null
-        });
-
-        let fullResponse = '';
-
-        for await (const chunk of chatCompletion) {
-            const content = chunk.choices[0]?.delta?.content || '';
-            if (content) {
-                fullResponse += content;
-                if (onChunk) {
-                    onChunk(content, fullResponse);
-                }
-            }
-        }
-
-        return fullResponse;
-    } catch (error) {
-        console.error('Error calling Groq API:', error);
-        throw error;
-    }
+    return streamWithFallback(prompt, onChunk, EXPLANATION_MODEL_CHAIN);
 }
 
 /**
@@ -357,6 +320,12 @@ Please provide a clear, helpful answer.`;
  * @returns {Promise<string>} - The complete AI-generated examples
  */
 export async function generateExample(exampleRequest, originalProblem = '', explanationContext = '', onChunk = null) {
+    // Backward compatibility: old callers used (exampleRequest, originalProblem, onChunk)
+    if (typeof explanationContext === 'function' && onChunk === null) {
+        onChunk = explanationContext;
+        explanationContext = '';
+    }
+
     const contextParts = [];
     if (originalProblem) {
         contextParts.push(`DSA Problem:\n${originalProblem}`);
@@ -382,39 +351,7 @@ Make it educational and help the student understand the broader applications.`
 
 Please provide relevant examples and use cases.`;
 
-    try {
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            model: MODEL,
-            temperature: 0.7,
-            max_completion_tokens: 1024,
-            top_p: 1,
-            stream: true,
-            stop: null
-        });
-
-        let fullResponse = '';
-
-        for await (const chunk of chatCompletion) {
-            const content = chunk.choices[0]?.delta?.content || '';
-            if (content) {
-                fullResponse += content;
-                if (onChunk) {
-                    onChunk(content, fullResponse);
-                }
-            }
-        }
-
-        return fullResponse;
-    } catch (error) {
-        console.error('Error calling Groq API:', error);
-        throw error;
-    }
+    return streamWithFallback(prompt, onChunk, EXPLANATION_MODEL_CHAIN);
 }
 
 
