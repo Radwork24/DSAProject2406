@@ -17,11 +17,37 @@ const groq = new Groq({
  * @param {string} companyName - Target company
  * @param {string} roleTitle - Target role (e.g., "Software Engineer")
  * @param {number} questionCount - Number of questions to generate
+ * @param {string} resumeText - Candidate resume text/summary
+ * @param {string} resumeFileName - Resume file name
+ * @param {string} roundType - Interview round type
  * @returns {Promise<Array>} Array of question objects
  */
-export async function generateInterviewQuestions(companyName = '', roleTitle = 'Software Engineer', questionCount = 5) {
+export async function generateInterviewQuestions(
+    companyName = '',
+    roleTitle = 'Software Engineer',
+    questionCount = 5,
+    resumeText = '',
+    resumeFileName = '',
+    roundType = 'Technical Round'
+) {
+    const resumeContext = resumeText
+        ? `Candidate Resume Context${resumeFileName ? ` (${resumeFileName})` : ''}:\n${resumeText.slice(0, 4000)}`
+        : 'No resume was provided.';
+
     const prompt = `You are an expert technical interviewer at ${companyName || 'a top tech company'}.
-Generate exactly ${questionCount} interview questions for a "${roleTitle}" position.
+Generate exactly ${questionCount} interview questions for a "${roleTitle}" role in the "${roundType}" round.
+
+Interview constraints:
+- Prioritize questions frequently asked at ${companyName || 'top tech companies'} for this exact round + role.
+- Tailor question selection and wording to the candidate resume context.
+- Keep the round style strict:
+  - HR Round / Behavioral Round: mostly behavioral, communication, culture-fit.
+  - Manager Round: ownership, stakeholder, execution, conflict handling.
+  - Technical Round: coding/problem-solving focused.
+  - System Design Round: architecture, scalability, design trade-offs.
+  - Final Round: mixed high-signal decision questions.
+
+${resumeContext}
 
 Mix of question types:
 - 2-3 DSA/Coding questions (increasing difficulty)

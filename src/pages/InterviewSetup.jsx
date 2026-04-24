@@ -9,7 +9,7 @@ import './InterviewSetup.css';
 function InterviewSetup() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { companyName, roleTitle } = location.state || {};
+    const { companyName, roleTitle, roundType, resumeText, resumeFileName } = location.state || {};
 
     const [userName, setUserName] = useState('User');
     const [cameras, setCameras] = useState([]);
@@ -148,7 +148,17 @@ function InterviewSetup() {
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
-        navigate('/interview-session', { state: { companyName, roleTitle, selectedCamera, selectedMic } });
+        navigate('/interview-session', {
+            state: {
+                companyName,
+                roleTitle,
+                roundType,
+                selectedCamera,
+                selectedMic,
+                resumeText: resumeText || '',
+                resumeFileName: resumeFileName || ''
+            }
+        });
     };
 
     return (
@@ -159,7 +169,9 @@ function InterviewSetup() {
                     <div className="setup-logo" onClick={() => navigate('/interview-dashboard')}>AlgoZen</div>
                     <div className="setup-role-info">
                         {companyName && <span className="setup-company-badge">{companyName}</span>}
-                        <span className="setup-role-name">{roleTitle || "Software Engineer Interview"}</span>
+                        <span className="setup-role-name">
+                            {roleTitle || "Software Engineer"}{roundType ? ` - ${roundType}` : " Interview"}
+                        </span>
                     </div>
                 </div>
 

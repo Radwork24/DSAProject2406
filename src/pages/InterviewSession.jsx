@@ -37,7 +37,7 @@ function InterviewSession() {
 
     const navigate = useNavigate();
     const location = useLocation();
-    const { companyName, roleTitle, selectedCamera, selectedMic } = location.state || {};
+    const { companyName, roleTitle, roundType, selectedCamera, selectedMic, resumeText, resumeFileName } = location.state || {};
 
     // ── User state ──
     const [userName, setUserName] = useState('User');
@@ -260,7 +260,14 @@ function InterviewSession() {
         const initInterview = async () => {
             setStatusText('Generating interview questions...');
             try {
-                const data = await generateInterviewQuestions(companyName, roleTitle, 5);
+                const data = await generateInterviewQuestions(
+                    companyName,
+                    roleTitle,
+                    5,
+                    resumeText || '',
+                    resumeFileName || '',
+                    roundType || 'Technical Round'
+                );
                 setInterviewData(data);
                 setQuestions(data.questions || []);
                 setInterviewState(STATES.GREETING);
@@ -630,7 +637,9 @@ function InterviewSession() {
                     <div className="session-logo">AlgoZen</div>
                     <div className="session-role-info">
                         {companyName && <span className="session-company-badge">{companyName}</span>}
-                        <span className="session-role-name">{roleTitle || "Software Engineer"}</span>
+                        <span className="session-role-name">
+                            {roleTitle || "Software Engineer"}{roundType ? ` - ${roundType}` : ''}
+                        </span>
                     </div>
                 </div>
                 <div className="session-header-right">

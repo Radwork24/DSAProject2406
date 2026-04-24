@@ -2,6 +2,11 @@ import Groq from 'groq-sdk';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const MODEL = 'llama-3.3-70b-versatile';
+const EXPLANATION_MODEL_CHAIN = [
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+    'meta-llama/llama-4-scout-17b-16e-instruct'
+];
 
 // New API Key and Model for Hint Mode
 const HINT_API_KEY = import.meta.env.VITE_HINT_API_KEY;
@@ -56,39 +61,67 @@ ${problemText}
 
 Please provide a clear, educational explanation. Remember: be direct and concise, and always structure the Problem Summary with the two subsections above.`;
 
-    try {
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            model: MODEL,
-            temperature: 0.7,
-            max_completion_tokens: 2048,
-            top_p: 1,
-            stream: true,
-            stop: null
-        });
+    const shouldFallback = (error) => {
+        const status = error?.status || error?.response?.status;
+        const message = (error?.message || error?.error?.message || '').toLowerCase();
+        return (
+            status === 429 ||
+            status === 503 ||
+            message.includes('rate limit') ||
+            message.includes('quota') ||
+            message.includes('too many requests') ||
+            message.includes('token') ||
+            message.includes('capacity') ||
+            message.includes('overloaded')
+        );
+    };
 
-        let fullResponse = '';
+    let lastError = null;
 
-        for await (const chunk of chatCompletion) {
-            const content = chunk.choices[0]?.delta?.content || '';
-            if (content) {
-                fullResponse += content;
-                if (onChunk) {
-                    onChunk(content, fullResponse);
+    for (let i = 0; i < EXPLANATION_MODEL_CHAIN.length; i++) {
+        const modelName = EXPLANATION_MODEL_CHAIN[i];
+        try {
+            const chatCompletion = await groq.chat.completions.create({
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                model: modelName,
+                temperature: 0.7,
+                max_completion_tokens: 2048,
+                top_p: 1,
+                stream: true,
+                stop: null
+            });
+
+            let fullResponse = '';
+
+            for await (const chunk of chatCompletion) {
+                const content = chunk.choices[0]?.delta?.content || '';
+                if (content) {
+                    fullResponse += content;
+                    if (onChunk) {
+                        onChunk(content, fullResponse);
+                    }
                 }
             }
-        }
 
-        return fullResponse;
-    } catch (error) {
-        console.error('Error calling Groq API:', error);
-        throw error;
+            return fullResponse;
+        } catch (error) {
+            lastError = error;
+            const hasNext = i < EXPLANATION_MODEL_CHAIN.length - 1;
+            if (!hasNext || !shouldFallback(error)) {
+                console.error(`Error calling Groq API on model ${modelName}:`, error);
+                throw error;
+            }
+
+            console.warn(`Model ${modelName} hit limits. Falling back to next model...`);
+        }
     }
+
+    throw lastError || new Error('All explanation models failed.');
 }
 
 /**

@@ -65,6 +65,15 @@ function InterviewDashboard() {
   const [hintMentionFilter, setHintMentionFilter] = useState('');
   const [selectedHintContext, setSelectedHintContext] = useState(null);
   const secondInputRef = useRef(null);
+  const [selectedJobRole, setSelectedJobRole] = useState('');
+  const [selectedInterviewRound, setSelectedInterviewRound] = useState('');
+  const [selectedPopupCompany, setSelectedPopupCompany] = useState('');
+  const [showCompanyPickerModal, setShowCompanyPickerModal] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [pendingCompany, setPendingCompany] = useState('');
+  const [resumeFileName, setResumeFileName] = useState('');
+  const [resumeText, setResumeText] = useState('');
+  const [resumeHint, setResumeHint] = useState('');
 
   // Hint Card responses (general hints) - NOW IN STATE
   const [hintCardResponses, setHintCardResponses] = useState({
@@ -212,6 +221,72 @@ function InterviewDashboard() {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const companyOptions = [
+    { name: 'Google', logo: 'G', logoClass: 'google-logo' },
+    { name: 'Amazon', logo: 'a', logoClass: 'amazon-logo' },
+    { name: 'Meta', logo: 'M', logoClass: 'meta-logo' },
+    { name: 'Microsoft', logo: 'MS', logoClass: 'microsoft-logo' },
+    { name: 'Netflix', logo: 'N', logoClass: 'netflix-logo' },
+    { name: 'Apple', logo: 'A', logoClass: 'apple-logo' },
+    { name: 'Deloitte', logo: 'D', logoClass: 'deloitte-logo' },
+    { name: 'Uber', logo: 'U', logoClass: 'uber-logo' }
+  ];
+
+  const interviewRoundOptions = [
+    'HR Round',
+    'Technical Round',
+    'Manager Round',
+    'System Design Round',
+    'Behavioral Round',
+    'Final Round'
+  ];
+
+  const handleRoleSelect = (roleTitle) => {
+    setSelectedJobRole(roleTitle);
+    setSelectedPopupCompany('');
+    setSelectedInterviewRound('');
+    setShowCompanyPickerModal(true);
+  };
+
+  const handleCompanyPick = (companyName) => {
+    setSelectedPopupCompany(companyName);
+  };
+
+  const handleResumeFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setResumeFileName(file.name);
+    setResumeHint('');
+
+    try {
+      const extractedText = await file.text();
+      const cleaned = extractedText.replace(/\s+/g, ' ').trim();
+      setResumeText(cleaned.slice(0, 4000));
+      if (!cleaned) {
+        setResumeHint('Resume file is empty. You can still continue.');
+      }
+    } catch (error) {
+      setResumeText('');
+      setResumeHint('Could not read this file type. You can continue or paste resume text manually.');
+    }
+  };
+
+  const handleResumeContinue = () => {
+    navigate('/interview-setup', {
+      state: {
+        roleTitle: selectedJobRole,
+        roundType: selectedInterviewRound,
+        companyName: pendingCompany,
+        resumeText,
+        resumeFileName
+      }
+    });
+    setShowResumeModal(false);
+    setPendingCompany('');
+    setResumeHint('');
   };
 
   const toggleConcepts = (messageId) => {
@@ -2278,70 +2353,169 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         {!messages.some(msg => msg.type === 'ai') && !hintQuestion && !codeGenQuestion && !debugQuestion && (
           <div className="interview-content-area">
 
-            {/* Companies Section */}
-            <div className="interview-section">
-              <h2 className="interview-section-title">Top Tech Companies</h2>
-              <div className="company-logos-grid">
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Google' } })}><span className="company-logo google-logo">G</span><span className="company-name">Google</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Amazon' } })}><span className="company-logo amazon-logo">a</span><span className="company-name">Amazon</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Meta' } })}><span className="company-logo meta-logo">M</span><span className="company-name">Meta</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Microsoft' } })}><span className="company-logo microsoft-logo">MS</span><span className="company-name">Microsoft</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Netflix' } })}><span className="company-logo netflix-logo">N</span><span className="company-name">Netflix</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Apple' } })}><span className="company-logo apple-logo"></span><span className="company-name">Apple</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Deloitte' } })}><span className="company-logo deloitte-logo">D</span><span className="company-name">Deloitte</span></div>
-                <div className="company-card" onClick={() => navigate('/interview-setup', { state: { companyName: 'Uber' } })}><span className="company-logo uber-logo">U</span><span className="company-name">Uber</span></div>
-              </div>
-            </div>
-
-            {/* Roles Section */}
             <div className="interview-section">
               <h2 className="interview-section-title">Interview Roles</h2>
               <div className="roles-grid">
-                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Software Engineer' } })}>
-                  <div className="role-icon">💻</div>
+                <div className="role-card" onClick={() => handleRoleSelect('Data Analyst')}>
+                  <div className="role-icon">DA</div>
                   <div className="role-details">
-                    <div className="role-title">Software Engineer</div>
-                    <div className="role-desc">DSA, System Design, LLD</div>
+                    <div className="role-title">Data Analyst</div>
+                    <div className="role-desc">SQL, dashboards, metrics, business insights</div>
                   </div>
                 </div>
-                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Data Scientist' } })}>
-                  <div className="role-icon">📊</div>
+                <div className="role-card" onClick={() => handleRoleSelect('AI / ML Engineer')}>
+                  <div className="role-icon">ML</div>
                   <div className="role-details">
-                    <div className="role-title">Data Scientist</div>
-                    <div className="role-desc">Machine Learning, Stats, SQL</div>
+                    <div className="role-title">AI / ML Engineer</div>
+                    <div className="role-desc">Modeling, evaluation, deployment and MLOps</div>
                   </div>
                 </div>
-                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Frontend Developer' } })}>
-                  <div className="role-icon">🎨</div>
+                <div className="role-card" onClick={() => handleRoleSelect('Frontend Developer')}>
+                  <div className="role-icon">FE</div>
                   <div className="role-details">
                     <div className="role-title">Frontend Developer</div>
-                    <div className="role-desc">React, DOM, Web Vitals</div>
+                    <div className="role-desc">React, UX, performance and accessibility</div>
                   </div>
                 </div>
-                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Backend Developer' } })}>
-                  <div className="role-icon">⚙️</div>
+                <div className="role-card" onClick={() => handleRoleSelect('Backend Developer')}>
+                  <div className="role-icon">BE</div>
                   <div className="role-details">
                     <div className="role-title">Backend Developer</div>
-                    <div className="role-desc">API Design, DB Scaling, Node</div>
+                    <div className="role-desc">APIs, database design, scaling and reliability</div>
                   </div>
                 </div>
-                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Mobile Developer' } })}>
-                  <div className="role-icon">📱</div>
+                <div className="role-card" onClick={() => handleRoleSelect('Full Stack Developer')}>
+                  <div className="role-icon">FS</div>
                   <div className="role-details">
-                    <div className="role-title">Mobile Developer</div>
-                    <div className="role-desc">iOS, Android, React Native</div>
+                    <div className="role-title">Full Stack Developer</div>
+                    <div className="role-desc">Frontend + backend integration and delivery</div>
                   </div>
                 </div>
-                <div className="role-card" onClick={() => navigate('/interview-setup', { state: { roleTitle: 'Cloud / DevOps' } })}>
-                  <div className="role-icon">☁️</div>
+                <div className="role-card" onClick={() => handleRoleSelect('Cloud / DevOps Engineer')}>
+                  <div className="role-icon">CL</div>
                   <div className="role-details">
-                    <div className="role-title">Cloud / DevOps</div>
-                    <div className="role-desc">AWS, CI/CD, Kubernetes</div>
+                    <div className="role-title">Cloud / DevOps Engineer</div>
+                    <div className="role-desc">CI/CD, infra automation, observability</div>
                   </div>
                 </div>
               </div>
             </div>
 
+          </div>
+        )}
+
+        {showCompanyPickerModal && (
+          <div className="interview-company-modal-overlay" onClick={() => setShowCompanyPickerModal(false)}>
+            <div className="interview-company-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="interview-company-modal-header">
+                <h3>Choose Company and Round for {selectedJobRole}</h3>
+                <button className="interview-company-modal-close" onClick={() => setShowCompanyPickerModal(false)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="company-logos-grid">
+                {companyOptions.map((company) => (
+                  <div
+                    key={company.name}
+                    className={`company-card ${selectedPopupCompany === company.name ? 'selected' : ''}`}
+                    onClick={() => handleCompanyPick(company.name)}
+                  >
+                    <span className={`company-logo ${company.logoClass}`}>{company.logo}</span>
+                    <span className="company-name">{company.name}</span>
+                  </div>
+                ))}
+              </div>
+              {selectedPopupCompany && (
+                <div className="round-picker-section">
+                  <div className="round-picker-title">Select round type for {selectedPopupCompany}</div>
+                  <div className="round-picker-grid">
+                    {interviewRoundOptions.map((round) => (
+                      <button
+                        key={round}
+                        type="button"
+                        className={`round-pill ${selectedInterviewRound === round ? 'active' : ''}`}
+                        onClick={() => setSelectedInterviewRound(round)}
+                      >
+                        {round}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="round-picker-actions">
+                    <button
+                      className="setup-continue-btn"
+                      disabled={!selectedInterviewRound}
+                      onClick={() => {
+                        setPendingCompany(selectedPopupCompany);
+                        setShowCompanyPickerModal(false);
+                        setShowResumeModal(true);
+                      }}
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showResumeModal && (
+          <div className="interview-company-modal-overlay" onClick={() => setShowResumeModal(false)}>
+            <div className="interview-company-modal interview-resume-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="interview-company-modal-header">
+                <h3>Upload Resume ({selectedJobRole} - {selectedInterviewRound} - {pendingCompany})</h3>
+                <button className="interview-company-modal-close" onClick={() => setShowResumeModal(false)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div className="resume-upload-body">
+                <p className="resume-upload-subtitle">
+                  We will tailor interview questions using round type, company patterns, and your resume.
+                </p>
+                <label className="resume-upload-label" htmlFor="resumeFileInput">
+                  Choose Resume File (.txt, .md or text-readable files)
+                </label>
+                <input
+                  id="resumeFileInput"
+                  type="file"
+                  className="resume-upload-input"
+                  onChange={handleResumeFileChange}
+                />
+                {resumeFileName && <div className="resume-file-name">Selected: {resumeFileName}</div>}
+                <label className="resume-upload-label" htmlFor="resumeTextInput">
+                  Or paste resume text (optional)
+                </label>
+                <textarea
+                  id="resumeTextInput"
+                  className="resume-upload-textarea"
+                  placeholder="Paste your resume summary/experience here..."
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                />
+                {resumeHint && <div className="resume-upload-hint">{resumeHint}</div>}
+                <div className="resume-upload-actions">
+                  <button
+                    className="setup-continue-btn resume-btn-secondary"
+                    onClick={() => {
+                      setResumeText('');
+                      setResumeFileName('');
+                      handleResumeContinue();
+                    }}
+                  >
+                    Skip for now
+                  </button>
+                  <button className="setup-continue-btn" onClick={handleResumeContinue}>
+                    Continue to Setup
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
