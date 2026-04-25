@@ -2,6 +2,7 @@ import '../App.css';
 import Header from '../components/Header';
 import CentralAnimation from '../components/CentralAnimation';
 import FeatureText from '../components/FeatureText';
+import Testimonials from '../components/Testimonials';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState, useEffect } from 'react';
@@ -128,6 +129,7 @@ function Home() {
             </p>
           </article>
         </section>
+        <Testimonials />
       </main>
       <Footer />
     </>

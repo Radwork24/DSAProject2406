@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import './Pricing.css';
@@ -70,6 +72,8 @@ function getPricingByCountry(country = 'India') {
 
 function Pricing() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isViewMode = new URLSearchParams(location.search).get('mode') === 'view';
     const [isProcessing, setIsProcessing] = useState(false);
     const [userCountry, setUserCountry] = useState('India');
     const [pricingConfig, setPricingConfig] = useState(getPricingByCountry('India'));
@@ -95,6 +99,11 @@ function Pricing() {
     }, []);
 
     const handlePayment = async (planName, amount, durationMonths, currencyCode) => {
+        if (isViewMode) {
+            navigate('/login');
+            return;
+        }
+
         const user = auth.currentUser;
         if (!user) {
             alert('Please login to purchase a subscription.');
@@ -104,6 +113,30 @@ function Pricing() {
 
         setIsProcessing(true);
         try {
+            const baseUrl = '';
+
+            // --- DODO PAYMENTS FLOW (For non-INR currencies) ---
+            if (currencyCode !== 'INR') {
+                const res = await fetch(`${baseUrl}/api/createDodoCheckout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, currency: currencyCode, planName, durationMonths, uid: user.uid }),
+                });
+                
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data?.error || `Server error (${res.status}). Check Dodo setup.`);
+                }
+                if (!data || !data.checkout_url) {
+                    throw new Error('Failed to create Dodo checkout session');
+                }
+                
+                // Redirect user to Dodo Payments checkout page
+                window.location.href = data.checkout_url;
+                return; // End flow here. Success handled on /payment-success callback
+            }
+
+            // --- RAZORPAY FLOW (For INR) ---
             const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
             if (!keyId) {
                 throw new Error('Razorpay key is not configured. Add VITE_RAZORPAY_KEY_ID to your .env file.');
@@ -113,7 +146,6 @@ function Pricing() {
             }
 
             // 1. Create order on the backend
-            const baseUrl = '';
             const res = await fetch(`${baseUrl}/api/createOrder`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -218,8 +250,10 @@ function Pricing() {
     };
 
     return (
-        <div className="pricing-container">
-            <header className="pricing-header">
+        <>
+            {isViewMode && <Header />}
+            <div className="pricing-container" style={isViewMode ? { paddingTop: '60px', paddingBottom: '80px' } : {}}>
+                <header className="pricing-header">
                 <h1>Plans that grow with you</h1>
                 <p className="plan-desc" style={{ marginTop: '12px' }}>
                     Pricing region: {pricingConfig.region} ({userCountry})
@@ -250,10 +284,10 @@ function Pricing() {
                         </div>
                         <button
                             className="plan-action-btn secondary-btn"
-                            disabled={isProcessing}
+                            disabled={isProcessing && !isViewMode}
                             onClick={() => handlePayment('1 Month', pricingConfig.plans.month1, 1, pricingConfig.currencyCode)}
                         >
-                            {isProcessing ? 'Processing...' : 'Get 1 Month Plan'}
+                            {isViewMode ? 'Sign In to Upgrade' : (isProcessing ? 'Processing...' : 'Get 1 Month Plan')}
                         </button>
                     </div>
                     <div className="card-features">
@@ -293,10 +327,10 @@ function Pricing() {
                         </div>
                         <button
                             className="plan-action-btn primary-btn"
-                            disabled={isProcessing}
+                            disabled={isProcessing && !isViewMode}
                             onClick={() => handlePayment('3 Months', pricingConfig.plans.month3, 3, pricingConfig.currencyCode)}
                         >
-                            {isProcessing ? 'Processing...' : 'Get 3 Month Plan'}
+                            {isViewMode ? 'Sign In to Upgrade' : (isProcessing ? 'Processing...' : 'Get 3 Month Plan')}
                         </button>
                     </div>
                     <div className="card-features">
@@ -338,10 +372,10 @@ function Pricing() {
                         </div>
                         <button
                             className="plan-action-btn primary-btn"
-                            disabled={isProcessing}
+                            disabled={isProcessing && !isViewMode}
                             onClick={() => handlePayment('12 Months', pricingConfig.plans.year12, 12, pricingConfig.currencyCode)}
                         >
-                            {isProcessing ? 'Processing...' : 'Get Yearly Plan'}
+                            {isViewMode ? 'Sign In to Upgrade' : (isProcessing ? 'Processing...' : 'Get Yearly Plan')}
                         </button>
                     </div>
                     <div className="card-features">
@@ -359,6 +393,8 @@ function Pricing() {
                 *Usage limits apply. Prices shown don't include applicable tax.
             </div>
         </div>
+        {isViewMode && <Footer />}
+        </>
     );
 }
 

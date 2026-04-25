@@ -24,6 +24,10 @@ import Features from './pages/Features';
 import HelpSupport from './pages/HelpSupport';
 import About from './pages/About';
 import ContactUs from './pages/ContactUs';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import CustomerStories from './pages/CustomerStories';
 
 function App() {
   return (
@@ -48,12 +52,16 @@ function App() {
         <Route path="/concepts/tree" element={<TreeConcept />} />
         <Route path="/level/:levelId" element={<ProblemPage />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/team" element={<Team />} />
         <Route path="/why-algozen" element={<WhyAlgoZen />} />
         <Route path="/features" element={<Features />} />
         <Route path="/help-support" element={<HelpSupport />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-use" element={<TermsOfUse />} />
+        <Route path="/customer-stories" element={<CustomerStories />} />
       </Routes>
     </Router>
   );

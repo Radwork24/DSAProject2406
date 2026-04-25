@@ -12,8 +12,8 @@ function Footer() {
             <div className="footer-links">
                 <div className="footer-col">
                     <h4 className="footer-col-title">PLATFORM &amp; SOLUTIONS</h4>
-                    <Link to="/pricing">See Pricing</Link>
-                    <Link to="#">Customer Stories</Link>
+                    <Link to="/pricing?mode=view">See Pricing</Link>
+                    <Link to="/customer-stories">Customer Stories</Link>
                     <Link to="#">Demos</Link>
                     <Link to="/help-support">Help &amp; Support</Link>
                 </div>
@@ -42,8 +42,8 @@ function Footer() {
 
                 <div className="footer-col">
                     <h4 className="footer-col-title">TERMS & POLICIES</h4>
-                    <Link to="#">Website Terms of Use</Link>
-                    <Link to="#">Privacy Policy</Link>
+                    <Link to="/terms-of-use">Website Terms of Use</Link>
+                    <Link to="/privacy-policy">Privacy Policy</Link>
                     <Link to="#">AlgoZen Trust Center</Link>
                     <Link to="#">Cookie Notice</Link>
                     <Link to="#">AlgoZen Privacy Portal</Link>
@@ -62,7 +62,7 @@ function Footer() {
                     <Link to="#">Manage cookies</Link>
                     <span className="footer-separator">&#x2022;</span>
                     <span>
-                        Designed by <strong>Rad 24 Lab Team</strong> (Mohit Gurjar, Abhay Singh, Yogesh Tiwari, Madhav ){' '}
+                        Designed by <strong>Rad 24 Lab Team</strong> (Mohit Gurjar, Abhay Singh, Yogesh Tiwari, Madhav Sanghvi){' '}
                         
                     </span>
                 </div>

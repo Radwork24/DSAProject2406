@@ -36,7 +36,7 @@ function ContactUs() {
                                 <div className="info-text">
                                     <h3>Email</h3>
                                     <p>Drop us a line anytime.</p>
-                                    <a href="mailto:support@algozen.com" className="highlight-link">support@algozen.com</a>
+                                    <a href="mailto:algozensupport24@gmail.com" className="highlight-link">algozensupport24@gmail.com</a>
                                 </div>
                             </div>
 
