@@ -72,6 +72,7 @@ function Dashboard() {
   const [debugResponse, setDebugResponse] = useState(null);
   const [isDebugging, setIsDebugging] = useState(false);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
+  const [isDebugQuestionCollapsed, setIsDebugQuestionCollapsed] = useState(true);
 
   // Hint Mode @ mention state
   const [showHintMentionDropdown, setShowHintMentionDropdown] = useState(false);
@@ -95,6 +96,10 @@ function Dashboard() {
     if (firstInputRef.current) autoResizeTextarea(firstInputRef.current);
     if (secondInputRef.current) autoResizeTextarea(secondInputRef.current);
   }, [inputValue]);
+
+  useEffect(() => {
+    setIsDebugQuestionCollapsed(true);
+  }, [debugQuestion]);
 
   // Hint Card responses (general hints) - NOW IN STATE
   const [hintCardResponses, setHintCardResponses] = useState({
@@ -454,6 +459,29 @@ function Dashboard() {
     setDebugResponse(null);
     setIsDebugging(false);
     setIsErrorsExpanded(true);
+  };
+
+  const switchModeToFreshState = (newMode) => {
+    setSelectedMode(newMode);
+
+    // Reset chat/content state so UI returns to the first input bar
+    setHasInitialResponse(false);
+    setMessages([]);
+    setInputValue('');
+    setOriginalProblem('');
+    setLastExplanation('');
+    setCitationSources([]);
+
+    // Clear floating popups/tiles
+    setDoubtPopups([]);
+    setExamplePopups([]);
+    setMinimizedTiles([]);
+    setMinimizedExampleTiles([]);
+
+    // Reset mode-specific states
+    resetHintMode();
+    resetCodeGenMode();
+    resetDebugMode();
   };
 
   // Load a chat from history
@@ -2298,7 +2326,16 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
             {/* Question Display */}
             <div className="debug-question-section">
               <div className="debug-question-label">Your Code</div>
-              <div className="debug-question-text">{debugQuestion}</div>
+              <div className={`debug-question-text ${isDebugQuestionCollapsed ? 'collapsed' : ''}`}>{debugQuestion}</div>
+              {debugQuestion && debugQuestion.length > 180 && (
+                <button
+                  type="button"
+                  className="debug-question-toggle"
+                  onClick={() => setIsDebugQuestionCollapsed(prev => !prev)}
+                >
+                  {isDebugQuestionCollapsed ? '...Show more' : 'Show less'}
+                </button>
+              )}
             </div>
 
             {/* Loading State */}
@@ -2643,17 +2680,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                         className="model-selector"
                         value={selectedMode}
                         onChange={(e) => {
-                          const newMode = e.target.value;
-                          setSelectedMode(newMode);
-
-                          // Reset states when switching modes
-                          setHasInitialResponse(false);
-                          setMessages([]);
-                          setInputValue('');
-
-                          if (newMode !== 'Hint Mode') {
-                            resetHintMode();
-                          }
+                          switchModeToFreshState(e.target.value);
                         }}
                       >
                         <option>Explanation Mode</option>
@@ -2766,10 +2793,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
                         className="model-selector"
                         value={selectedMode}
                         onChange={(e) => {
-                          setSelectedMode(e.target.value);
-                          if (e.target.value !== 'Hint Mode') {
-                            resetHintMode();
-                          }
+                          switchModeToFreshState(e.target.value);
                         }}
                       >
                         <option>Explanation Mode</option>

@@ -53,8 +53,14 @@
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #e0e4ec;
+  color: #ffffff;
   margin-bottom: 10px;
+}
+
+/* Force label color (avoid global overrides) */
+.signup-form .form-label,
+.signup-container .form-label {
+  color: #ffffff !important;
 }
 
 .form-label .required {
@@ -75,28 +81,96 @@
 .signup-input {
   width: 100%;
   padding: 14px 16px;
-  background-color: #3a3d42;
+  background: #3a3d42 !important;
+  background-color: #3a3d42 !important;
+  background-image: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  color-scheme: dark;
   border: 1px solid #454950;
   border-radius: 8px;
-  color: #e0e0e0;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
   font-size: 15px;
   font-family: inherit;
   transition: all 0.2s ease;
+  box-shadow: 0 0 0 1000px #3a3d42 inset;
+}
+
+/* Force typed text color (some browsers override normal `color`) */
+.signup-form .signup-input,
+.signup-form .signup-input:focus,
+.signup-form .signup-input:active {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+}
+
+.signup-input:-webkit-autofill,
+.signup-input:-webkit-autofill:hover,
+.signup-input:-webkit-autofill:focus,
+.signup-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #3a3d42 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Hide placeholder when user focuses (so it's never visible while typing) */
+.signup-form .signup-input:focus::placeholder {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.signup-form .signup-input:focus::-webkit-input-placeholder {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.signup-form .signup-input:focus::-moz-placeholder {
+  color: transparent !important;
+}
+
+.signup-form .signup-input:focus:-ms-input-placeholder {
+  color: transparent !important;
 }
 
 .signup-input:hover {
   border-color: #50555c;
-  background-color: #454950;
+  background: #454950 !important;
+  background-color: #454950 !important;
+  box-shadow: 0 0 0 1000px #454950 inset;
 }
 
 .signup-input:focus {
   outline: none;
   border-color: #ff7e5f;
-  box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.2);
+  background: #3a3d42 !important;
+  background-color: #3a3d42 !important;
+  box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.2), 0 0 0 1000px #3a3d42 inset;
 }
 
-.signup-input::placeholder {
-  color: #8a8a8a;
+.signup-form .signup-input::placeholder {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.signup-form .signup-input::-webkit-input-placeholder {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.signup-form .signup-input::-moz-placeholder {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+}
+
+.signup-form .signup-input:-ms-input-placeholder {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
 }
 
 .select-wrapper.month-select {

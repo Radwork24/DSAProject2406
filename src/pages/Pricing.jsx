@@ -1,15 +1,100 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import './Pricing.css';
 
+const SOUTH_ASIA_COUNTRIES = ['India', 'Pakistan', 'Nepal', 'Bangladesh'];
+const PREMIUM_WEST_COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'Singapore'];
+const EUROPEAN_COUNTRIES = ['France', 'Germany', 'Ireland', 'Italy', 'Netherlands', 'Poland', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'Russia', 'Turkey'];
+
+function getPricingByCountry(country = 'India') {
+    if (SOUTH_ASIA_COUNTRIES.includes(country)) {
+        return {
+            region: 'South Asia',
+            currencyCode: 'INR',
+            symbol: '₹',
+            plans: { month1: 100, month3: 249, year12: 999 },
+            periods: { month1: 'billed monthly', month3: 'billed every 3 months', year12: 'billed annually' }
+        };
+    }
+
+    if (PREMIUM_WEST_COUNTRIES.includes(country)) {
+        if (country === 'United Kingdom') {
+            return {
+                region: 'Premium West',
+                currencyCode: 'GBP',
+                symbol: '£',
+                plans: { month1: 12, month3: 29, year12: 79 },
+                periods: { month1: 'billed monthly', month3: 'billed every 3 months', year12: 'billed annually' }
+            };
+        }
+
+        if (EUROPEAN_COUNTRIES.includes(country)) {
+            return {
+                region: 'Premium West',
+                currencyCode: 'EUR',
+                symbol: '€',
+                plans: { month1: 12, month3: 29, year12: 79 },
+                periods: { month1: 'billed monthly', month3: 'billed every 3 months', year12: 'billed annually' }
+            };
+        }
+
+        return {
+            region: 'Premium West',
+            currencyCode: 'USD',
+            symbol: '$',
+            plans: { month1: 15, month3: 35, year12: 99 },
+            periods: { month1: 'billed monthly', month3: 'billed every 3 months', year12: 'billed annually' }
+        };
+    }
+
+    if (EUROPEAN_COUNTRIES.includes(country)) {
+        return {
+            region: 'Premium West',
+            currencyCode: 'EUR',
+            symbol: '€',
+            plans: { month1: 12, month3: 29, year12: 79 },
+            periods: { month1: 'billed monthly', month3: 'billed every 3 months', year12: 'billed annually' }
+        };
+    }
+
+    return {
+        region: 'Rest of World',
+        currencyCode: 'USD',
+        symbol: '$',
+        plans: { month1: 9, month3: 22, year12: 59 },
+        periods: { month1: 'billed monthly', month3: 'billed every 3 months', year12: 'billed annually' }
+    };
+}
+
 function Pricing() {
     const navigate = useNavigate();
-    const [billingCycle, setBillingCycle] = useState('Yearly');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [userCountry, setUserCountry] = useState('India');
+    const [pricingConfig, setPricingConfig] = useState(getPricingByCountry('India'));
 
-    const handlePayment = async (planName, amount, durationMonths) => {
+    useEffect(() => {
+        const loadCountry = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const country = userSnap.data()?.country || 'India';
+                    setUserCountry(country);
+                    setPricingConfig(getPricingByCountry(country));
+                }
+            } catch (error) {
+                console.error('Error loading user country for pricing:', error);
+            }
+        };
+        loadCountry();
+    }, []);
+
+    const handlePayment = async (planName, amount, durationMonths, currencyCode) => {
         const user = auth.currentUser;
         if (!user) {
             alert('Please login to purchase a subscription.');
@@ -32,7 +117,7 @@ function Pricing() {
             const res = await fetch(`${baseUrl}/api/createOrder`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount, receipt: user.uid }),
+                body: JSON.stringify({ amount, currency: currencyCode, receipt: user.uid }),
             });
             const order = await res.json();
 
@@ -136,6 +221,9 @@ function Pricing() {
         <div className="pricing-container">
             <header className="pricing-header">
                 <h1>Plans that grow with you</h1>
+                <p className="plan-desc" style={{ marginTop: '12px' }}>
+                    Pricing region: {pricingConfig.region} ({userCountry})
+                </p>
             </header>
 
             <div className="pricing-cards">
@@ -154,13 +242,17 @@ function Pricing() {
                         <h2>1 Month</h2>
                         <p className="plan-desc">Short-term access to premium features</p>
                         <div className="price-container">
-                            <span className="price">₹99</span>
+                            <span className="price">{pricingConfig.symbol}{pricingConfig.plans.month1}</span>
                             <div className="price-period">
-                                <div>INR</div>
-                                <div>billed monthly</div>
+                                <div>{pricingConfig.currencyCode}</div>
+                                <div>{pricingConfig.periods.month1}</div>
                             </div>
                         </div>
-                        <button className="plan-action-btn secondary-btn" disabled={isProcessing} onClick={() => handlePayment('1 Month', 99, 1)}>
+                        <button
+                            className="plan-action-btn secondary-btn"
+                            disabled={isProcessing}
+                            onClick={() => handlePayment('1 Month', pricingConfig.plans.month1, 1, pricingConfig.currencyCode)}
+                        >
                             {isProcessing ? 'Processing...' : 'Get 1 Month Plan'}
                         </button>
                     </div>
@@ -193,13 +285,17 @@ function Pricing() {
                         <h2>3 Months</h2>
                         <p className="plan-desc">Best value for your semester</p>
                         <div className="price-container">
-                            <span className="price">₹249</span>
+                            <span className="price">{pricingConfig.symbol}{pricingConfig.plans.month3}</span>
                             <div className="price-period">
-                                <div>INR</div>
-                                <div>billed every 3 months</div>
+                                <div>{pricingConfig.currencyCode}</div>
+                                <div>{pricingConfig.periods.month3}</div>
                             </div>
                         </div>
-                        <button className="plan-action-btn primary-btn" disabled={isProcessing} onClick={() => handlePayment('3 Months', 249, 3)}>
+                        <button
+                            className="plan-action-btn primary-btn"
+                            disabled={isProcessing}
+                            onClick={() => handlePayment('3 Months', pricingConfig.plans.month3, 3, pricingConfig.currencyCode)}
+                        >
                             {isProcessing ? 'Processing...' : 'Get 3 Month Plan'}
                         </button>
                     </div>
@@ -234,13 +330,17 @@ function Pricing() {
                         <h2>12 Months</h2>
                         <p className="plan-desc">Maximum savings, ultimate access</p>
                         <div className="price-container">
-                            <span className="price">₹999</span>
+                            <span className="price">{pricingConfig.symbol}{pricingConfig.plans.year12}</span>
                             <div className="price-period">
-                                <div>INR</div>
-                                <div>billed annually</div>
+                                <div>{pricingConfig.currencyCode}</div>
+                                <div>{pricingConfig.periods.year12}</div>
                             </div>
                         </div>
-                        <button className="plan-action-btn primary-btn" disabled={isProcessing} onClick={() => handlePayment('12 Months', 999, 12)}>
+                        <button
+                            className="plan-action-btn primary-btn"
+                            disabled={isProcessing}
+                            onClick={() => handlePayment('12 Months', pricingConfig.plans.year12, 12, pricingConfig.currencyCode)}
+                        >
                             {isProcessing ? 'Processing...' : 'Get Yearly Plan'}
                         </button>
                     </div>

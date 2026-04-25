@@ -12,6 +12,11 @@ const EXPLANATION_MODEL_CHAIN = [
 const HINT_API_KEY = import.meta.env.VITE_HINT_API_KEY;
 const HINT_MODEL = 'openai/gpt-oss-120b';
 const CODE_GEN_API_KEY = import.meta.env.VITE_CODE_GEN_API_KEY;
+const HINT_MODEL_CHAIN = [
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+    'meta-llama/llama-4-scout-17b-16e-instruct'
+];
 
 const groq = new Groq({
     apiKey: GROQ_API_KEY,
@@ -247,30 +252,41 @@ The JSON must follow this exact schema:
 }
 `;
 
-    try {
-        const chatCompletion = await groqHints.chat.completions.create({
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            model: HINT_MODEL,
-            temperature: 0.5, // Lower temperature for consistent JSON
-            max_completion_tokens: 2048,
-            top_p: 1,
-            stream: false, // No streaming for JSON data
-            stop: null,
-            response_format: { type: "json_object" } // Force JSON mode
-        });
+    let lastError = null;
 
-        const content = chatCompletion.choices[0]?.message?.content || '{}';
-        return JSON.parse(content);
+    for (let i = 0; i < HINT_MODEL_CHAIN.length; i++) {
+        const modelName = HINT_MODEL_CHAIN[i];
+        try {
+            const chatCompletion = await groqHints.chat.completions.create({
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                model: modelName,
+                temperature: 0.5, // Lower temperature for consistent JSON
+                max_completion_tokens: 2048,
+                top_p: 1,
+                stream: false, // No streaming for JSON data
+                stop: null,
+                response_format: { type: "json_object" } // Force JSON mode
+            });
 
-    } catch (error) {
-        console.error('Error calling Groq API for hints:', error);
-        throw error;
+            const content = chatCompletion.choices[0]?.message?.content || '{}';
+            return JSON.parse(content);
+        } catch (error) {
+            lastError = error;
+            const hasNext = i < HINT_MODEL_CHAIN.length - 1;
+            if (!hasNext || !shouldFallbackModel(error)) {
+                console.error(`Error calling Groq API for hints on model ${modelName}:`, error);
+                throw error;
+            }
+            console.warn(`Hint model ${modelName} hit limits. Falling back to next model...`);
+        }
     }
+
+    throw lastError || new Error('All hint models failed.');
 }
 
 /**

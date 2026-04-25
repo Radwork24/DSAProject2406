@@ -62,7 +62,7 @@ function Footer() {
                     <Link to="#">Manage cookies</Link>
                     <span className="footer-separator">&#x2022;</span>
                     <span>
-                        Designed by <strong>Rad 24 Lab Team</strong> (Mohit Gurjar, Abhay Singh, Yogesh Tiwari){' '}
+                        Designed by <strong>Rad 24 Lab Team</strong> (Mohit Gurjar, Abhay Singh, Yogesh Tiwari, Madhav ){' '}
                         
                     </span>
                 </div>
