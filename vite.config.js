@@ -226,6 +226,47 @@ function webSearchPlugin(env) {
         });
       });
 
+      server.middlewares.use('/api/createDodoCheckout', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405; res.end('Method not allowed'); return;
+        }
+        let body = '';
+        req.on('data', chunk => { body += chunk });
+        req.on('end', async () => {
+          try {
+            const { amount, currency = 'USD', planName, durationMonths, uid } = JSON.parse(body);
+            
+            const productMapping = {
+                1: 'pdt_0NdS1kcWQYi0ZDWafzmi8',
+                3: 'pdt_0NdS1kpibztnu8fS1nX3d',
+                12: 'pdt_0NdS1kt8sRFuf4PeNjoba'
+            };
+            const productId = productMapping[durationMonths];
+
+            const DodoPayments = (await import('dodopayments')).default;
+            const client = new DodoPayments({
+                bearerToken: env.DODO_PAYMENTS_API_KEY || process.env.DODO_PAYMENTS_API_KEY,
+                environment: 'test_mode',
+            });
+
+            const baseUrl = req.headers.origin || 'http://localhost:5173';
+            const returnUrl = `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${encodeURIComponent(planName)}&duration=${durationMonths}`;
+
+            const session = await client.checkoutSessions.create({
+                billing: { city: "", country: "", state: "", street: "", zipcode: "" },
+                product_cart: [{ product_id: productId, quantity: 1 }],
+                return_url: returnUrl,
+                metadata: { uid: uid, plan: planName }
+            });
+
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ checkout_url: session.checkout_url }));
+          } catch (error) {
+            res.statusCode = 500; res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      });
+
       // ── Text-to-Speech (Groq PlayAI TTS) ──
       server.middlewares.use('/api/tts', async (req, res) => {
         if (req.method === 'OPTIONS') {
