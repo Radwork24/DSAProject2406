@@ -316,7 +316,7 @@ function Dashboard() {
   };
 
   // Helper to save current chat
-  const saveChatToFirebase = async (messagesToSave, mode, originalProb, isNewChat = false) => {
+  const saveChatToFirebase = async (messagesToSave, mode, originalProb, isNewChat = false, extraData = {}) => {
     if (!currentUser || messagesToSave.length === 0) return;
 
     try {
@@ -328,7 +328,8 @@ function Dashboard() {
         updatedAt: new Date().toISOString(),
         messages: messagesToSave,
         mode: mode,
-        originalProblem: originalProb
+        originalProblem: originalProb,
+        ...extraData
       };
 
       if (isNewChat || !currentChatIdRef.current) {
@@ -510,11 +511,15 @@ function Dashboard() {
       setHintQuestion(chat.originalProblem || '');
     } else if (loadedMode === 'Code Generation Mode') {
       setCodeGenQuestion(chat.originalProblem || '');
+      if (chat.generatedApproaches && chat.generatedApproaches.length > 0) {
+        setGeneratedApproaches(chat.generatedApproaches);
+        setCurrentApproachIndex(0);
+      }
     } else if (loadedMode === 'Debugging Mode') {
       setDebugQuestion(chat.originalProblem || '');
-      // If we saved debug response or errors, we'd restore them here. 
-      // For now, setting the question brings back the UI, though actual errors are lost unless 
-      // they were saved in chat.messages or chat.debugResponse.
+      if (chat.debugResponse) {
+        setDebugResponse(chat.debugResponse);
+      }
     }
   };
 
@@ -1164,6 +1169,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
         setIsDebugging(true);
 
+        let responseToSave = null;
         // Call Groq API for code debugging
         try {
           // Step 1: Get debugging results first
@@ -1171,6 +1177,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
 
           // Validate response structure
           if (response && response.userCode && response.correctedCode && Array.isArray(response.errors)) {
+            responseToSave = response;
             setDebugResponse(response);
 
             // Step 2: If errors exist, fetch high-quality visualization separately
@@ -1194,20 +1201,21 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         } catch (error) {
           console.error("Failed to debug code:", error);
           // Fallback to error message
-          setDebugResponse({
+          responseToSave = {
             userCode: userText,
             correctedCode: userText,
             errors: [{
               line: 1,
               message: `Error analyzing code: ${error.message}. Please try again.`
             }]
-          });
+          };
+          setDebugResponse(responseToSave);
           setHasInitialResponse(true);
         } finally {
           setIsDebugging(false);
           // Save the chat after debugging response
           const currentMsgs = [{ id: Date.now(), type: 'user', text: userText, timestamp: new Date() }];
-          saveChatToFirebase(currentMsgs, 'Debugging Mode', originalProblem);
+          saveChatToFirebase(currentMsgs, 'Debugging Mode', userText, false, { debugResponse: responseToSave });
         }
 
         return;
@@ -1309,6 +1317,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         setIsGeneratingCode(true);
         setIsGeneratingCode(true);
 
+        let approachesToSave = [];
         try {
           // Call Groq API for code generation
           // Note: generateCode now returns a Promise<Object> with { approaches: [...] }
@@ -1316,6 +1325,7 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
           const response = await generateCode(userText, selectedLanguage);
 
           if (response && response.approaches && Array.isArray(response.approaches)) {
+            approachesToSave = response.approaches;
             setGeneratedApproaches(response.approaches);
             setCurrentApproachIndex(0);
           } else {
@@ -1326,17 +1336,18 @@ console.log(\`Indices: \${result}\`);  // Output: [0, 1]`
         } catch (error) {
           console.error("Failed to generate code:", error);
           // Fallback error approach
-          setGeneratedApproaches([{
+          approachesToSave = [{
             title: "Error",
             code: `// Error generating code: ${error.message}\n// Please try again.`
-          }]);
+          }];
+          setGeneratedApproaches(approachesToSave);
           setCurrentApproachIndex(0);
           setHasInitialResponse(true);
         } finally {
           setIsGeneratingCode(false);
           // Save chat after code generation
           const currentMsgs = [{ id: Date.now(), type: 'user', text: userText, timestamp: new Date() }];
-          saveChatToFirebase(currentMsgs, 'Code Generation Mode', originalProblem);
+          saveChatToFirebase(currentMsgs, 'Code Generation Mode', userText, false, { generatedApproaches: approachesToSave });
         }
         return;
       }
